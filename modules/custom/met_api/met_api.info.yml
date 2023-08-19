@@ -1,0 +1,8 @@
+name: MET Rest API
+description: Define the custom Rest API for MET Mobile application.
+package: MET
+type: module
+core_version_requirement: ^8.7.7 || ^9 || ^10
+dependencies:
+  - drupal:rest
+  - drupal:restui

@@ -1,0 +1,9 @@
+id: met_api_request_assistance_resource_config
+plugin_id: met_api_request_assistance_resource
+granularity: resource
+configuration:
+  POST:
+    supported_formats:
+      - json
+    supported_auth:
+      - cookie
