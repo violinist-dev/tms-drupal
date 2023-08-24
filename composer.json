@@ -21,7 +21,9 @@
         "drupal/core-project-message": "^10.0",
         "drupal/core-recommended": "^10.0",
         "drupal/core-vendor-hardening": "^10.0",
+        "drupal/geolocation": "^3.12",
         "drupal/hal": "^2.0",
+        "drupal/paragraphs": "^1.15",
         "drupal/restui": "^1.21"
     },
     "conflict": {
@@ -98,6 +100,7 @@
         }
     },
     "require-dev": {
+        "drupal/devel": "^5.1",
         "drush/drush": "^12.1"
     }
 }
