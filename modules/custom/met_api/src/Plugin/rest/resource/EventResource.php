@@ -2,14 +2,14 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
-#[AllowDynamicProperties]
+use Drupal\Core\Datetime\DateFormatter;
 
 /**
  * Provides the API resource for the mobile App
@@ -82,7 +82,7 @@ class EventResource extends ResourceBase {
 
     $nodes =  $storage->loadMultiple($nids);
     $new_nodes = [];
-    $paragraph_fields_include = ['type', 'status', 'field_date', 'field_location', 'field_depth', 'field_magnitude', 'field_category'];
+    $paragraph_fields_include = ['type', 'status', 'field_date', 'field_location', 'field_depth', 'field_magnitude', 'field_category', 'field_name', 'field_active'];
     foreach($nodes as $node) {
       $data = [];
       $data['id'] = $node->id();
@@ -93,17 +93,23 @@ class EventResource extends ResourceBase {
       $fields = $node->field_event_type->referencedEntities();
       foreach($paragraph_fields_include as $field) {
         if (isset($fields[0]->$field)) {
-          if($field == 'type') {
-            $data['p'][$field] = $fields[0]->$field->target_id;
+          if ($field == 'type') {
+            $data[$field] = $fields[0]->$field->target_id;
+          } else if( $field == 'field_date') {
+            $data['date'] = $fields[0]->$field->date->format('d/m/Y');
+            $data['time'] = $fields[0]->$field->date->format('h:i a');
+            $data['field_date'] = $fields[0]->$field->date->format('d/m/Y h:i a');
           } else {
-            $data['p'][$field] = $fields[0]->$field->value;
+            $data[$field] = $fields[0]->$field->value;
           }
         }
       }
 
-      $new_nodes[] = $data;
+      $new_nodes[$node->id()] = $data;
     }
-    return new ResourceResponse($new_nodes, 200);
+    $build = ['#cache' => ['max-age' => 0]];
+
+    return (new ResourceResponse($new_nodes, 200))->addCacheableDependency($build);
   }
 
   public function permissions() {
