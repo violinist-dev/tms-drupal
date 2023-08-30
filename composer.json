@@ -21,10 +21,12 @@
         "drupal/core-project-message": "^10.0",
         "drupal/core-recommended": "^10.0",
         "drupal/core-vendor-hardening": "^10.0",
+        "drupal/firebase": "^3.0",
         "drupal/geolocation": "^3.12",
         "drupal/hal": "^2.0",
         "drupal/paragraphs": "^1.15",
-        "drupal/restui": "^1.21"
+        "drupal/restui": "^1.21",
+        "drupal/textfield_counter": "^2.3"
     },
     "conflict": {
         "drupal/drupal": "*"

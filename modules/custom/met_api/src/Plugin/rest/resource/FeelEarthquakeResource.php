@@ -2,6 +2,7 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\met_feel_earthquake\Entity\METFeelEarthquake;
 use Drupal\node\Entity\Node;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
@@ -83,14 +84,14 @@ class FeelEarthquakeResource extends ResourceBase {
     }
     */
 
-    $nodes = [];
+    $items = [];
     foreach ($data as $key => $value) {
 
-      $node = Node::create(
+      $item = METFeelEarthquake::create(
         [
           'field_event' => $value['event_id'],
           'type' => 'feel_earthquake',
-          'title' => 'Feel Earthquake',
+          'label' => 'Feel Earthquake',
           'body' => [
             'summary' => '',
             'value' => $value['body'],
@@ -105,13 +106,13 @@ class FeelEarthquakeResource extends ResourceBase {
         ]
       );
 
-      $node->enforceIsNew();
-      $node->save();
-      $this->logger->notice($this->t("Node with nid @nid saved! \n", ['@nid' => $node->id()]));
-      $nodes[] = $node->id();
+      $item->enforceIsNew();
+      $item->save();
+      $this->logger->notice($this->t("Item with id @id saved! \n", ['@id' => $item->id()]));
+      $items[] = $item->id();
     }
 
-    $response_msg = $this->t("New Nodes creates with nids : @message", ['@message' => implode(",", $nodes)]);
+    $response_msg = $this->t("New item creates with items : @message", ['@message' => implode(",", $items)]);
     return $this->response($response_msg, $response_code);
   }
 

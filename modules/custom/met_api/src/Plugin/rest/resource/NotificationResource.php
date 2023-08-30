@@ -69,29 +69,28 @@ class NotificationResource extends ResourceBase {
 
   public function get() {
 
-    $storage = \Drupal::service('entity_type.manager')->getStorage('node');
-    $nids = $storage->getQuery()
-      ->condition('type','push_notification')
+    $storage = \Drupal::service('entity_type.manager')->getStorage('met_notification');
+    $items = $storage->getQuery()
       ->condition('status', 1)
       ->accessCheck(FALSE)
       ->execute();
 
-    $nodes =  $storage->loadMultiple($nids);
-    $new_nodes = [];
-    foreach($nodes as $node) {
+    $items =  $storage->loadMultiple($items);
+    $new_items = [];
+    foreach($items as $item) {
       $data = [];
-      $data['id'] = $node->id();
-      $data['title'] = $node->title->value;
-      $data['body'] = $node->body->value;
-      $data['level'] = $node->field_level->value;
-      $data['target_location'] = $node->field_location;
-      $data['time'] = $node->created->value;
+      $data['id'] = $item->id();
+      $data['title'] = $item->title->value;
+      $data['body'] = $item->body->value;
+      $data['level'] = $item->field_level->value;
+      $data['target_location'] = $item->field_location;
+      $data['time'] = $item->created->value;
 
-      $new_nodes[$node->id()] = $data;
+      $new_items[$item->id()] = $data;
     }
     $build = ['#cache' => ['max-age' => 0]];
 
-    return (new ResourceResponse($new_nodes, 200))->addCacheableDependency($build);
+    return (new ResourceResponse($new_items, 200))->addCacheableDependency($build);
   }
 
   public function permissions() {
