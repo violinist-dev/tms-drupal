@@ -1,0 +1,7 @@
+entity.met_push.settings:
+  path: 'admin/structure/met-push'
+  defaults:
+    _form: '\Drupal\met_push\Form\METPushNotificationSettingsForm'
+    _title: 'Push Notification'
+  requirements:
+    _permission: 'administer push notifications'

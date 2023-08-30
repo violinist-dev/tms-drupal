@@ -1,0 +1,5 @@
+met_feel_earthquake.add_form:
+  title: 'Add feel earthquake'
+  route_name: entity.met_feel_earthquake.add_form
+  appears_on:
+    - entity.met_feel_earthquake.collection

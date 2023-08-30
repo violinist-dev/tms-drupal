@@ -1,0 +1,11 @@
+entity.met_feel_earthquake.settings:
+  title: 'Feel Earthquake'
+  description: 'Configure a Feel Earthquake entity type.'
+  route_name:  entity.met_feel_earthquake.settings
+  parent: system.admin_structure
+
+entity.met_feel_earthquake.collection:
+  title: 'Feel Earthquakes'
+  description: 'List of feel earthquakes.'
+  route_name: entity.met_feel_earthquake.collection
+  parent: system.admin_content

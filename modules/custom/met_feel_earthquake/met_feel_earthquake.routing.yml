@@ -1,0 +1,7 @@
+entity.met_feel_earthquake.settings:
+  path: 'admin/structure/met-feel-earthquake'
+  defaults:
+    _form: '\Drupal\met_feel_earthquake\Form\METFeelEarthquakeSettingsForm'
+    _title: 'Feel Earthquake'
+  requirements:
+    _permission: 'administer feel earthquakes'

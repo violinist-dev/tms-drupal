@@ -1,0 +1,3 @@
+administer feel earthquakes:
+  title: 'Administer feel earthquakes'
+  restrict access: true

@@ -1,0 +1,11 @@
+entity.met_push.settings:
+  title: 'Push Notification'
+  description: 'Configure a Push Notification entity type.'
+  route_name:  entity.met_push.settings
+  parent: system.admin_structure
+
+entity.met_push.collection:
+  title: 'Push Notifications'
+  description: 'List of push notifications.'
+  route_name: entity.met_push.collection
+  parent: system.admin_content

@@ -1,0 +1,11 @@
+entity.met_notification.settings:
+  title: 'MET Notification'
+  description: 'Configure a MET Notification entity type.'
+  route_name:  entity.met_notification.settings
+  parent: system.admin_structure
+
+entity.met_notification.collection:
+  title: 'MET Notifications'
+  description: 'List of met notifications.'
+  route_name: entity.met_notification.collection
+  parent: system.admin_content

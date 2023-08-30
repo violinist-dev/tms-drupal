@@ -1,0 +1,3 @@
+administer met notifications:
+  title: 'Administer met notifications'
+  restrict access: true

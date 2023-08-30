@@ -1,0 +1,3 @@
+administer push notifications:
+  title: 'Administer push notifications'
+  restrict access: true

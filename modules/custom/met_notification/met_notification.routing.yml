@@ -1,0 +1,7 @@
+entity.met_notification.settings:
+  path: 'admin/structure/met-notification'
+  defaults:
+    _form: '\Drupal\met_notification\Form\METNotificationSettingsForm'
+    _title: 'MET Notification'
+  requirements:
+    _permission: 'administer met notifications'

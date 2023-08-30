@@ -14,14 +14,14 @@ use Psr\Log\LoggerInterface;
  * Provides the API resource for the mobile App
  *
  * @RestResource(
- *   id = "met_event_report_api_resource",
- *   label = @Translation("MET API Event Report Resouce"),
+ *   id = "met_feel_earthquake_api_resource",
+ *   label = @Translation("MET API Feel Earthquake Report Resouce"),
  *   uri_paths = {
- *      "create" = "/api/v1/event-report"
+ *      "create" = "/api/v1/feel-earthquake"
  *   }
  * )
  */
-class EventReportResource extends ResourceBase {
+class FeelEarthquakeResource extends ResourceBase {
 
 
   use StringTranslationTrait;
@@ -70,14 +70,10 @@ class EventReportResource extends ResourceBase {
     );
   }
 
-  public function jsonFormat($value) {
-    return ['uri' => $value];
-  }
-
   public function  post($data) {
 
     $response_code = 201;
-    $response_msg = 'Event Report API endpoint';
+    $response_msg = 'Feel the earthquake API endpoint';
 
     /*
     if (!$this->currentUser->hasPermission('administer site content')) {
@@ -90,18 +86,22 @@ class EventReportResource extends ResourceBase {
     $nodes = [];
     foreach ($data as $key => $value) {
 
-      $images = array_map([$this, 'jsonFormat'], $value['images']);
-
       $node = Node::create(
         [
-        'type' => 'event_report',
-        'title' => $value['title'],
-        'body' => [
-          'summary' => '',
-          'value' => $value['body'],
-          'format' => 'full_html',
+          'field_event' => $value['event_id'],
+          'type' => 'feel_earthquake',
+          'title' => 'Feel Earthquake',
+          'body' => [
+            'summary' => '',
+            'value' => $value['body'],
+            'format' => 'full_html',
           ],
-        'field_images' => $images
+          'field_location' => strtolower($value['location']),
+          'field_rate_earthquake' => $value['rate_earthquake'],
+          'field_geo_location' => [
+            'lat' => $value['lat'],
+            'lng' => $value['lng'],
+          ],
         ]
       );
 
@@ -121,12 +121,7 @@ class EventReportResource extends ResourceBase {
   }
 
   public function permissions() {
-    return ['MET API permission for event report' => [
-      'title' => $this->t('MET API permission for Event Report'),
-      'description' => $this->t('This is a permission to allow access to MET API event report'),
-      'restrict access' => true,
-    ],
-    ];
+    return [];
   }
 
 }

@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - met_push
+id: met_push_save_action
+label: 'Save push notifications'
+type: met_push
+plugin: entity:save_action:met_push
+configuration: {  }

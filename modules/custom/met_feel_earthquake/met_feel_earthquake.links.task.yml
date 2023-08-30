@@ -1,0 +1,22 @@
+entity.met_feel_earthquake.settings:
+  title: 'Settings'
+  route_name: entity.met_feel_earthquake.settings
+  base_route: entity.met_feel_earthquake.settings
+entity.met_feel_earthquake.view:
+  title: 'View'
+  route_name: entity.met_feel_earthquake.canonical
+  base_route: entity.met_feel_earthquake.canonical
+entity.met_feel_earthquake.edit_form:
+  title: 'Edit'
+  route_name: entity.met_feel_earthquake.edit_form
+  base_route: entity.met_feel_earthquake.canonical
+entity.met_feel_earthquake.delete_form:
+  title: 'Delete'
+  route_name: entity.met_feel_earthquake.delete_form
+  base_route: entity.met_feel_earthquake.canonical
+  weight: 10
+entity.met_feel_earthquake.collection:
+  title: 'Feel Earthquakes'
+  route_name: entity.met_feel_earthquake.collection
+  base_route: system.admin_content
+  weight: 10

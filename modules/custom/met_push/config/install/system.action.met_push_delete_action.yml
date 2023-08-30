@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - met_push
+id: met_push_delete_action
+label: 'Delete push notifications'
+type: met_push
+plugin: entity:delete_action:met_push
+configuration: {  }
