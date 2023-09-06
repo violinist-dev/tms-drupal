@@ -105,6 +105,23 @@ class EventResource extends ResourceBase {
         }
       }
 
+      //check to see if any data in feel earthquake for this event
+      if ($data['type'] == 'earthquake') {
+
+        $str = \Drupal::service('entity_type.manager')->getStorage('met_feel_earthquake');
+        $itemids = $str->getQuery()
+          ->condition('field_event',$node->id())
+          ->accessCheck(FALSE)
+          ->execute();
+
+        $feels =  $str->loadMultiple($itemids);
+        $data['feel'] = [];
+        foreach ($feels as $field) {
+              $data['feel'][] = $field->field_location->value;
+        }
+        $data['feel'] = array_unique($data['feel']);
+      }
+
       $new_nodes[$node->id()] = $data;
     }
     $build = ['#cache' => ['max-age' => 0]];

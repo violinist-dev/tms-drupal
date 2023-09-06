@@ -2,25 +2,28 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Datetime\DateFormatter;
 
 /**
  * Provides the API resource for the mobile App
  *
  * @RestResource(
- *   id = "met_api_notification_resource",
- *   label = @Translation("MET API Notification Resouce"),
+ *   id = "met_api_weather_resource",
+ *   label = @Translation("MET API Weather Resouce"),
  *   uri_paths = {
- *      "canonical" = "/api/v1/notification"
+ *      "canonical" = "/api/v1/weather"
  *   }
  * )
  */
-class NotificationResource extends ResourceBase {
+class WeatherResource extends ResourceBase {
+
   use StringTranslationTrait;
 
   /**
@@ -47,9 +50,7 @@ class NotificationResource extends ResourceBase {
    *   A current user instance.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, array $serializer_formats, LoggerInterface $logger, AccountProxyInterface $current_user) {
-
     parent::__construct($configuration, $plugin_id, $plugin_definition, $serializer_formats, $logger);
-
     $this->currentUser = $current_user;
   }
 
@@ -68,30 +69,31 @@ class NotificationResource extends ResourceBase {
   }
 
   public function get() {
+    $csv_file_name = 'weather.csv';
+    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $file = fopen($absolute_path, "r");
 
-    $storage = \Drupal::service('entity_type.manager')->getStorage('met_notification');
-    $items = $storage->getQuery()
-      ->condition('status', 1)
-      ->accessCheck(FALSE)
-      ->execute();
+    $data = [];
+    $type = '';
+    while(! feof($file))
+    {
+      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
+        if (!is_null($lines[0])) {
 
-    $items =  $storage->loadMultiple($items);
-    $new_items = [];
-    foreach($items as $item) {
-      $data = [];
-      $data['id'] = $item->id();
-      $data['title'] = strip_tags($item->title->value);
-      $data['body'] = strip_tags($item->description->value);
-      $data['level'] = $item->field_level->value;
-      $data['target_location'] = $item->field_location;
-      $data['time'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'd/m/Y');
-      $data['date'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'h:i a');
-
-      $new_items[$item->id()] = $data;
+          if(count($lines) == 1) {
+            $type = $lines[0];
+            continue;
+          }
+          $data[$type][] = array_map('trim',$lines);
+        }
+      }
     }
+
+    fclose($file);
+
     $build = ['#cache' => ['max-age' => 0]];
 
-    return (new ResourceResponse($new_items, 200))->addCacheableDependency($build);
+    return (new ResourceResponse($data, 200))->addCacheableDependency($build);
   }
 
   public function permissions() {
