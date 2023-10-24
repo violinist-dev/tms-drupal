@@ -1,0 +1,7 @@
+met_data_converter.example:
+  path: '/met-data-converter/example'
+  defaults:
+    _title: 'Example'
+    _controller: '\Drupal\met_data_converter\Controller\MetDataConverterController'
+  requirements:
+    _permission: 'access content'

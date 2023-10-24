@@ -75,6 +75,7 @@ class WeatherResource extends ResourceBase {
 
     $data = [];
     $type = '';
+    $location = '';
     while(! feof($file))
     {
       while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
@@ -95,6 +96,10 @@ class WeatherResource extends ResourceBase {
 
     return (new ResourceResponse($data, 200))->addCacheableDependency($build);
   }
+
+
+
+
 
   public function permissions() {
     return [];

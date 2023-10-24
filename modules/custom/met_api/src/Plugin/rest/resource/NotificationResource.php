@@ -81,6 +81,7 @@ class NotificationResource extends ResourceBase {
       $data = [];
       $data['id'] = $item->id();
       $data['title'] = strip_tags($item->title->value);
+
       $data['body'] = strip_tags($item->description->value);
       $data['level'] = $item->field_level->value;
       $data['target_location'] = $item->field_location;
