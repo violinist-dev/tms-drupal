@@ -92,6 +92,27 @@ class WeatherResource extends ResourceBase {
 
     fclose($file);
 
+
+    //read current weather forecast
+    $csv_file_name = 'weather_current.csv';
+    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $file = fopen($absolute_path, "r");
+    while(! feof($file))
+    {
+      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
+        if (!is_null($lines[0])) {
+
+          if(count($lines) == 1) {
+            $type = $lines[0];
+            continue;
+          }
+          $data[$type][] = array_map('trim',$lines);
+        }
+      }
+    }
+
+    fclose($file);
+
     $build = ['#cache' => ['max-age' => 0]];
 
     return (new ResourceResponse($data, 200))->addCacheableDependency($build);
