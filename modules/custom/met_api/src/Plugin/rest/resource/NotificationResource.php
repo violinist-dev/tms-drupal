@@ -99,6 +99,7 @@ class NotificationResource extends ResourceBase {
       $data['target_location'] = $item->field_location;
       $data['time'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'd/m/Y');
       $data['date'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'h:i a');
+      $data['timestamp'] = $item->created->value;
 
       $new_items[$item->id()] = $data;
     }
