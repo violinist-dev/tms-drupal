@@ -123,21 +123,28 @@ class UserResource extends ResourceBase{
   public function logout($data) {
 
     $user = \Drupal::currentUser();
-    \Drupal::logger('user')
-      ->info('Session closed for %name.', [
-        '%name' => $user
-          ->getAccountName(),
-      ]);
-    \Drupal::moduleHandler()
-      ->invokeAll('user_logout', [
-        $user,
-      ]);
 
-    \Drupal::service('session_manager')->destroy();
-    $user->setAccount(new AnonymousUserSession());
+    if ($user->isAnonymous()) {
+      $output = ['message' => 'Anonymous user'];
+    } else {
+
+      \Drupal::logger('user')
+        ->info('Session closed for %name.', [
+          '%name' => $user
+            ->getAccountName(),
+        ]);
+      \Drupal::moduleHandler()
+        ->invokeAll('user_logout', [
+          $user,
+        ]);
+
+      \Drupal::service('session_manager')->destroy();
+      $user->setAccount(new AnonymousUserSession());
+      $output = ['message' => 'Logout success'];
+    }
 
     $build = ['#cache' => ['max-age' => 0]];
-    $output = ['message' => 'Logout success'];
+
     return (new ResourceResponse($output, 200))->addCacheableDependency($build);
   }
 
@@ -164,7 +171,7 @@ class UserResource extends ResourceBase{
     $userArr = [
       'name' => $user->get('name')->value,
       'id' => $user->id(),
-      'mail' => $user->get('mail')->value,
+      'mail' => $user->get('mail')->value
     ];
 
     $build = ['#cache' => ['max-age' => 0]];
@@ -212,6 +219,16 @@ class UserResource extends ResourceBase{
   }
 
   public function get($uid = NULL) {
+
+    $user = \Drupal::currentUser();
+
+    if ($user->isAnonymous() || $user->id() !== $uid) {
+      throw new AccessDeniedHttpException('Access denied');
+    } else {
+      $msg = 'Cookie Access Granted:  User: ' . $user->getEmail();
+      \Drupal::logger('finau')->info($msg);
+    }
+
     if (!is_null($uid)) {
       $rids = ['authenticated'];
       $storage = \Drupal::service('entity_type.manager')->getStorage('user');

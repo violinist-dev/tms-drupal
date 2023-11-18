@@ -115,11 +115,12 @@ class EventResource extends ResourceBase {
           ->execute();
 
         $feels =  $str->loadMultiple($itemids);
-        $data['feel'] = [];
+        $location = [];
         foreach ($feels as $field) {
-              $data['feel'][] = $field->field_location->value;
+            if (in_array($field->field_location->value, $location)) continue;
+            $location[] = $field->field_location->value;
         }
-        $data['feel'] = array_unique($data['feel']);
+        $data['feel'] = $location;
       }
 
       $new_nodes[$node->id()] = $data;

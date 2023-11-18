@@ -10,6 +10,7 @@ use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Datetime\DateFormatter;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Provides the API resource for the mobile App
@@ -69,57 +70,39 @@ class WeatherResource extends ResourceBase {
   }
 
   public function get() {
-    $csv_file_name = 'weather.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
-    $file = fopen($absolute_path, "r");
+    //weather
+    $file_name = 'weather.json';
+    $tide_absolute_path = \Drupal::service('file_system')->realpath('public://' . $file_name);
+    $tide_info = file_get_contents($tide_absolute_path);
+    $data = unserialize($tide_info);
 
-    $data = [];
-    $type = '';
-    $location = '';
-    while(! feof($file))
-    {
-      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
-        if (!is_null($lines[0])) {
+    //tide data
+    $file_name = 'tide.json';
+    $tide_absolute_path = \Drupal::service('file_system')->realpath('public://' . $file_name);
+    $tide_info = file_get_contents($tide_absolute_path);
+    $tide_data = unserialize($tide_info);
 
-          if(count($lines) == 1) {
-            $type = $lines[0];
-            continue;
+    $tide = [];
+    $today_date = date('d/m/Y');
+    foreach($tide_data as $location => $info) {
+        foreach($info as $event => $time ) {
+          foreach($time as $event_date => $event_time) {
+            //only get today info
+            if($event_date == $today_date) {
+              $tide[$location][] = [
+                'event' => $event,
+                'time' => implode(", ", $event_time),
+              ];
+            }
           }
-          $data[$type][] = array_map('trim',$lines);
         }
-      }
     }
-
-    fclose($file);
-
-
-    //read current weather forecast
-    $csv_file_name = 'weather_current.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
-    $file = fopen($absolute_path, "r");
-    while(! feof($file))
-    {
-      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
-        if (!is_null($lines[0])) {
-
-          if(count($lines) == 1) {
-            $type = $lines[0];
-            continue;
-          }
-          $data[$type][] = array_map('trim',$lines);
-        }
-      }
-    }
-
-    fclose($file);
+    $data['tide'] = $tide;
 
     $build = ['#cache' => ['max-age' => 0]];
 
     return (new ResourceResponse($data, 200))->addCacheableDependency($build);
   }
-
-
-
 
 
   public function permissions() {
