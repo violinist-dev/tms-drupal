@@ -3,6 +3,7 @@
 namespace Drupal\met_api\Plugin\rest\resource;
 use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\met_api\Controller\UserLoginController;
+use http\Exception\BadHeaderException;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Session\AccountInterface;
@@ -93,12 +94,33 @@ class UserResource extends ResourceBase{
       $container->get('current_user')
     );
   }
-  public function patch($uid) {
-    // Create the account.
-    //$account->save();
-    //$user = User::load($uid);
+  public function patch(Request $request, $uid) {
 
-   // return new ModifiedResourceResponse($account, 200);
+    $payload = json_decode($request->getContent());
+    list($updateField) = $payload;
+    $account = \Drupal\user\Entity\User::load($uid);
+
+    if(isset($updateField->photo)) {
+      $image =  [
+        'uri' =>  $updateField->photo,
+      ];
+      $account->set('field_user_picture', $image);
+    }
+    $account->save();
+    $photo = $account->get('field_user_picture')->getValue()[0]['uri'];
+
+    $output = [
+      'name' => $account->get('name')->value,
+      'id' => $account->id(),
+      'mail' => $account->get('mail')->value,
+      'photo' => $photo != '' ? $photo : 'https://macres-media-storage.s3.ap-southeast-2.amazonaws.com/user.png',
+    ];
+
+
+    $build = ['#cache' => ['max-age' => 0]];
+
+  return (new ResourceResponse($output, 200))->addCacheableDependency($build);
+
   }
 
 
@@ -168,10 +190,30 @@ class UserResource extends ResourceBase{
       throw new BadRequestHttpException('Invalid username or password');
     }
 
+    //Load all impact report and Assistance request belong to this user
+    /*
+    $nids = \Drupal::entityQuery('node')
+      ->condition('type','request_assistance')
+      ->condition('author',$user)
+      ->execute();
+    $nodes =  \Drupal\node\Entity\Node::loadMultiple($nids);
+    $data = [];
+    foreach($nodes as $node) {
+      $data[] = [
+        'id' => $node->id(),
+        'title' => $node->getTitle(),
+        'time' => $node->get('created'),
+      ];
+    }
+    */
+
+    $photo = $user->get('field_user_picture')->getValue()[0]['uri'];
+
     $userArr = [
       'name' => $user->get('name')->value,
       'id' => $user->id(),
-      'mail' => $user->get('mail')->value
+      'mail' => $user->get('mail')->value,
+      'photo' => $photo != '' ? $photo : 'https://macres-media-storage.s3.ap-southeast-2.amazonaws.com/user.png',
     ];
 
     $build = ['#cache' => ['max-age' => 0]];
@@ -181,8 +223,19 @@ class UserResource extends ResourceBase{
 
   public function forgot($data) {
 
+    $account = user_load_by_mail($data->user->mail);
+    if(!$account) {
+      throw new BadRequestHttpException('Unknown email address ' . $data->user->mail);
+    }
+    $mail = _user_mail_notify('password_reset', $account);
+
+    if (!$mail) {
+      throw new BadHeaderException('Unable to send email, please try again later.');
+    }
+
+    $msg = 'Please check your email for more information.';
     $build = ['#cache' => ['max-age' => 0]];
-    $output = ['message' => 'from forgot function: ' . $data->mail];
+    $output = ['message' => $msg];
     return (new ResourceResponse($output, 200))->addCacheableDependency($build);
   }
 
@@ -224,9 +277,6 @@ class UserResource extends ResourceBase{
 
     if ($user->isAnonymous() || $user->id() !== $uid) {
       throw new AccessDeniedHttpException('Access denied');
-    } else {
-      $msg = 'Cookie Access Granted:  User: ' . $user->getEmail();
-      \Drupal::logger('finau')->info($msg);
     }
 
     if (!is_null($uid)) {
