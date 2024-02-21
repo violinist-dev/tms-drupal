@@ -1,0 +1,9 @@
+met_tide_data.example:
+  path: '/met-tide-data/run'
+  defaults:
+    _title: 'Tide Data'
+    _controller: '\Drupal\met_tide_data\Controller\MetTideDataController'
+  requirements:
+    _permission: 'access content'
+  options:
+    no_cache: 'TRUE'

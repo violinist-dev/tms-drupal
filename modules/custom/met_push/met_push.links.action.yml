@@ -1,0 +1,5 @@
+met_push.add_form:
+  title: 'Add push notification'
+  route_name: entity.met_push.add_form
+  appears_on:
+    - entity.met_push.collection

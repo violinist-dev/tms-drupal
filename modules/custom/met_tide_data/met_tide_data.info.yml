@@ -1,0 +1,5 @@
+name: 'MET Tide Data'
+type: module
+description: 'Pull tide data from internet and put in CSV'
+package: MET
+core_version_requirement: ^10

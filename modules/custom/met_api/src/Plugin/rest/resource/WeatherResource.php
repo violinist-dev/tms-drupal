@@ -2,25 +2,29 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Datetime\DateFormatter;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Provides the API resource for the mobile App
  *
  * @RestResource(
- *   id = "met_api_notification_resource",
- *   label = @Translation("MET API Notification Resouce"),
+ *   id = "met_api_weather_resource",
+ *   label = @Translation("MET API Weather Resouce"),
  *   uri_paths = {
- *      "canonical" = "/api/v1/notification/{lng}"
+ *      "canonical" = "/api/v1/weather"
  *   }
  * )
  */
-class NotificationResource extends ResourceBase {
+class WeatherResource extends ResourceBase {
+
   use StringTranslationTrait;
 
   /**
@@ -47,9 +51,7 @@ class NotificationResource extends ResourceBase {
    *   A current user instance.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, array $serializer_formats, LoggerInterface $logger, AccountProxyInterface $current_user) {
-
     parent::__construct($configuration, $plugin_id, $plugin_definition, $serializer_formats, $logger);
-
     $this->currentUser = $current_user;
   }
 
@@ -67,46 +69,41 @@ class NotificationResource extends ResourceBase {
     );
   }
 
-  public function get($lng = 'en') {
+  public function get() {
+    //weather
+    $file_name = 'weather.json';
+    $tide_absolute_path = \Drupal::service('file_system')->realpath('public://' . $file_name);
+    $tide_info = file_get_contents($tide_absolute_path);
+    $data = unserialize($tide_info);
 
-    $storage = \Drupal::service('entity_type.manager')->getStorage('met_notification');
-    $items = $storage->getQuery()
-      ->condition('status', 1)
-      ->accessCheck(FALSE)
-      ->sort('created', 'DESC')
-      ->range(0, 10)
-      ->execute();
+    //tide data
+    $file_name = 'tide.json';
+    $tide_absolute_path = \Drupal::service('file_system')->realpath('public://' . $file_name);
+    $tide_info = file_get_contents($tide_absolute_path);
+    $tide_data = unserialize($tide_info);
 
-    $items =  $storage->loadMultiple($items);
-    $new_items = [];
-    foreach($items as $item) {
-
-      $data = [];
-      foreach($item->field_language as $p) {
-        $ent = $p->entity;
-        if($lng == 'en' && $ent->type->target_id == 'notification_english') {
-          $data['body'] = strip_tags($ent->field_body->value);
-          $data['title'] = strip_tags($ent->field_title->value);
+    $tide = [];
+    $today_date = date('d/m/Y');
+    foreach($tide_data as $location => $info) {
+        foreach($info as $event => $time ) {
+          foreach($time as $event_date => $event_time) {
+            //only get today info
+            if($event_date == $today_date) {
+              $tide[$location][] = [
+                'event' => $event,
+                'time' => implode(", ", $event_time),
+              ];
+            }
+          }
         }
-        if($lng == 'to' && $ent->type->target_id == 'notification_tongan') {
-          $data['body'] = strip_tags($ent->field_body->value);
-          $data['title'] = strip_tags($ent->field_title->value);
-        }
-      }
-
-      $data['id'] = $item->id();
-      $data['level'] = $item->field_level->value;
-      $data['target_location'] = $item->field_location;
-      $data['time'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'd/m/Y');
-      $data['date'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'h:i a');
-      $data['timestamp'] = $item->created->value;
-
-      $new_items[$item->id()] = $data;
     }
+    $data['tide'] = $tide;
+
     $build = ['#cache' => ['max-age' => 0]];
 
-    return (new ResourceResponse($new_items, 200))->addCacheableDependency($build);
+    return (new ResourceResponse($data, 200))->addCacheableDependency($build);
   }
+
 
   public function permissions() {
     return [];

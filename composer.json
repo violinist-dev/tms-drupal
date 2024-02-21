@@ -15,14 +15,20 @@
         }
     ],
     "require": {
+        "caophihung94/php-simple-html-dom-parser": "^1.7",
         "composer/installers": "^2.0",
         "drupal/admin_toolbar": "^3.4",
+        "drupal/charts": "^5.0",
         "drupal/core-composer-scaffold": "^10.0",
         "drupal/core-project-message": "^10.0",
         "drupal/core-recommended": "^10.0",
         "drupal/core-vendor-hardening": "^10.0",
+        "drupal/firebase": "^3.0",
+        "drupal/geolocation": "^3.12",
         "drupal/hal": "^2.0",
-        "drupal/restui": "^1.21"
+        "drupal/paragraphs": "^1.15",
+        "drupal/restui": "^1.21",
+        "drupal/textfield_counter": "^2.3"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -98,6 +104,7 @@
         }
     },
     "require-dev": {
+        "drupal/devel": "^5.1",
         "drush/drush": "^12.1"
     }
 }

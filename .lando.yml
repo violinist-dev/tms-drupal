@@ -13,3 +13,4 @@ services:
       database: database
   phpmyadmin:
     type: phpmyadmin
+    backends: [db]

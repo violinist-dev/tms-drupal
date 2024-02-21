@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - met_feel_earthquake
+id: met_feel_earthquake_save_action
+label: 'Save feel earthquakes'
+type: met_feel_earthquake
+plugin: entity:save_action:met_feel_earthquake
+configuration: {  }

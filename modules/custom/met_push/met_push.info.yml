@@ -1,0 +1,7 @@
+name: 'MET Push'
+type: module
+description: 'Handle MET push notification'
+package: MET
+core_version_requirement: ^10
+dependencies:
+  - firebase:firebase

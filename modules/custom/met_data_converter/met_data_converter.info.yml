@@ -1,0 +1,5 @@
+name: 'MET Data Converter'
+type: module
+description: 'Convert the weather data to readable format.'
+package: MET
+core_version_requirement: ^10

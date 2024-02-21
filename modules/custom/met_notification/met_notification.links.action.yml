@@ -1,0 +1,5 @@
+met_notification.add_form:
+  title: 'Add met notification'
+  route_name: entity.met_notification.add_form
+  appears_on:
+    - entity.met_notification.collection

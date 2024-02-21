@@ -1,0 +1,22 @@
+entity.met_push.settings:
+  title: 'Settings'
+  route_name: entity.met_push.settings
+  base_route: entity.met_push.settings
+entity.met_push.view:
+  title: 'View'
+  route_name: entity.met_push.canonical
+  base_route: entity.met_push.canonical
+entity.met_push.edit_form:
+  title: 'Edit'
+  route_name: entity.met_push.edit_form
+  base_route: entity.met_push.canonical
+entity.met_push.delete_form:
+  title: 'Delete'
+  route_name: entity.met_push.delete_form
+  base_route: entity.met_push.canonical
+  weight: 10
+entity.met_push.collection:
+  title: 'Push Notifications'
+  route_name: entity.met_push.collection
+  base_route: system.admin_content
+  weight: 10

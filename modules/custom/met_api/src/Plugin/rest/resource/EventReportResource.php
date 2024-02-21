@@ -70,9 +70,13 @@ class EventReportResource extends ResourceBase {
     );
   }
 
+  public function jsonFormat($value) {
+    return ['uri' => $value];
+  }
+
   public function  post($data) {
 
-    $response_code = 200;
+    $response_code = 201;
     $response_msg = 'Event Report API endpoint';
 
     /*
@@ -85,15 +89,19 @@ class EventReportResource extends ResourceBase {
 
     $nodes = [];
     foreach ($data as $key => $value) {
+
+      $images = array_map([$this, 'jsonFormat'], $value['images']);
+
       $node = Node::create(
         [
-        'type' => $value['nodetype'],
+        'type' => 'event_report',
         'title' => $value['title'],
         'body' => [
           'summary' => '',
           'value' => $value['body'],
           'format' => 'full_html',
           ],
+        'field_images' => $images
         ]
       );
 

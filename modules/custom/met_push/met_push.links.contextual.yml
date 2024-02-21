@@ -1,0 +1,10 @@
+entity.met_push.edit_form:
+  route_name: entity.met_push.edit_form
+  group: met_push
+  title: 'Edit'
+
+entity.met_push.delete_form:
+  route_name: entity.met_push.delete_form
+  group: met_push
+  title: 'Delete'
+  weight: 10
