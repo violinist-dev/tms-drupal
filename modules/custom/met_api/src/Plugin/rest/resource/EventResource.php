@@ -77,6 +77,7 @@ class EventResource extends ResourceBase {
       ->condition('type','event')
       ->condition('field_active', 1)
       ->condition('status', 1)
+      ->sort('created', 'DESC')
       ->accessCheck(FALSE)
       ->execute();
 
