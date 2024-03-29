@@ -3,8 +3,10 @@
 namespace Drupal\met_api\Plugin\rest\resource;
 
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
@@ -15,14 +17,14 @@ use Drupal\Core\Datetime\DateFormatter;
  * Provides the API resource for the mobile App
  *
  * @RestResource(
- *   id = "met_api_event_resource",
- *   label = @Translation("MET API Event Resouce"),
+ *   id = "met_api_evacuation_resource",
+ *   label = @Translation("MET API Evacuation Resouce"),
  *   uri_paths = {
- *      "canonical" = "/api/v1/event"
+ *      "canonical" = "/api/v1/evacuation"
  *   }
  * )
  */
-class EventResource extends ResourceBase {
+class EvacuationResource extends ResourceBase {
 
   use StringTranslationTrait;
 
@@ -48,6 +50,7 @@ class EventResource extends ResourceBase {
    *   A logger instance.
    * @param \Drupal\Core\Session\AccountProxyInterface $current_user
    *   A current user instance.
+   *
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, array $serializer_formats, LoggerInterface $logger, AccountProxyInterface $current_user) {
 
@@ -66,7 +69,7 @@ class EventResource extends ResourceBase {
       $plugin_definition,
       $container->getParameter('serializer.formats'),
       $container->get('logger.factory')->get('MET API'),
-      $container->get('current_user')
+      $container->get('current_user'),
     );
   }
 
@@ -74,8 +77,7 @@ class EventResource extends ResourceBase {
 
     $storage = \Drupal::service('entity_type.manager')->getStorage('node');
     $nids = $storage->getQuery()
-      ->condition('type','event')
-      ->condition('field_active', 1)
+      ->condition('type','evacuation')
       ->condition('status', 1)
       ->sort('created', 'DESC')
       ->accessCheck(FALSE)
@@ -83,58 +85,30 @@ class EventResource extends ResourceBase {
 
     $nodes =  $storage->loadMultiple($nids);
     $new_nodes = [];
-    $paragraph_fields_include = ['type', 'status', 'field_date', 'field_date_only', 'field_region_', 'field_location', 'field_depth', 'field_magnitude', 'field_category', 'field_name', 'field_active'];
-    foreach($nodes as $node) {
+   foreach($nodes as $node) {
+
+     //process location
+     $lat = '';
+     $lon = '';
+     if ($node->field_geo_location->value != "") {
+       list($lat, $lon) = explode(", ", $node->field_geo_location->value);
+     }
+
+     //process photo
+     //$large_image = ImageStyle::load('large')->buildUrl($node->field_safe_zone_image->entity->getFileUri());
+     $large_image = \Drupal::service('file_url_generator')->generateAbsoluteString($node->field_safe_zone_image->entity->getFileUri());
+     $thumb_image = ImageStyle::load('thumbnail')->buildUrl($node->field_safe_zone_image->entity->getFileUri());
+
       $data = [];
-      $data['id'] = $node->id();
+      $data['id'] = (int)$node->id();
       $data['title'] = $node->title->value;
-      $data['body'] = strip_tags($node->body->value);
-      $data['active'] = $node->field_active->value;
+      $data['body'] = $node->body->value;
+      $data['image_large'] = $large_image;
+      $data['image_small'] = $thumb_image;
+      $data['lat'] = (Double)$lat;
+      $data['lon'] = (Double)$lon;
 
-      $fields = $node->field_event_type->referencedEntities();
-      foreach($paragraph_fields_include as $field) {
-        if (isset($fields[0]->$field)) {
-          if ($field == 'type') {
-            $data[$field] = $fields[0]->$field->target_id;
-          } else if( $field == 'field_date') {
-            $data['date'] = $fields[0]->$field->date->format('d/m/Y');
-            $data['time'] = $fields[0]->$field->date->format('h:i a');
-            $data['field_date'] = $fields[0]->$field->date->format('d/m/Y h:i a');
-          } else if($field == 'field_date_only') {
-            $data['date'] = $fields[0]->$field->date->format('d/m/Y');
-          }
-          else {
-            $data[$field] = $fields[0]->$field->value;
-          }
-        }
-      }
-
-
-      //check to see if any data in feel earthquake for this event
-      if ($data['type'] == 'earthquake') {
-        $str = \Drupal::service('entity_type.manager')->getStorage('met_feel_earthquake');
-        $itemids = $str->getQuery()
-          ->condition('field_event',$node->id())
-          ->accessCheck(FALSE)
-          ->addTag('debug')
-          ->execute();
-
-        $feels =  $str->loadMultiple($itemids);
-        $location = [];
-        foreach ($feels as $field) {
-           $location[] = $field->field_location->value;
-        }
-
-        $uLocation = array_unique($location);
-        $feel_data = [];
-        foreach($uLocation as $value) {
-          $feel_data[$value] = count(array_intersect($location, [$value]));
-        }
-
-        $data['feel'] = $feel_data;
-      }
-
-      $new_nodes[$node->id()] = $data;
+      $new_nodes[] = $data;
     }
     $build = ['#cache' => ['max-age' => 0]];
 
@@ -146,4 +120,3 @@ class EventResource extends ResourceBase {
   }
 
 }
-

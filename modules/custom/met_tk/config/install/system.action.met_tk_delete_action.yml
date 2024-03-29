@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - met_tk
+id: met_tk_delete_action
+label: 'Delete met tks'
+type: met_tk
+plugin: entity:delete_action:met_tk
+configuration: {  }

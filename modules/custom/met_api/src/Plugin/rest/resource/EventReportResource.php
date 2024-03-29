@@ -101,8 +101,12 @@ class EventReportResource extends ResourceBase {
           'value' => $value['body'],
           'format' => 'full_html',
           ],
-        'field_images' => $images
-        ]
+        'field_images' => $images,
+        'field_geo_location' => [
+          'lat' => $value['lat'],
+          'lng' => $value['lng'],
+        ],
+      ]
       );
 
       $node->enforceIsNew();

@@ -1,0 +1,22 @@
+entity.met_tk.settings:
+  title: 'Settings'
+  route_name: entity.met_tk.settings
+  base_route: entity.met_tk.settings
+entity.met_tk.view:
+  title: 'View'
+  route_name: entity.met_tk.canonical
+  base_route: entity.met_tk.canonical
+entity.met_tk.edit_form:
+  title: 'Edit'
+  route_name: entity.met_tk.edit_form
+  base_route: entity.met_tk.canonical
+entity.met_tk.delete_form:
+  title: 'Delete'
+  route_name: entity.met_tk.delete_form
+  base_route: entity.met_tk.canonical
+  weight: 10
+entity.met_tk.collection:
+  title: 'MET TKs'
+  route_name: entity.met_tk.collection
+  base_route: system.admin_content
+  weight: 10

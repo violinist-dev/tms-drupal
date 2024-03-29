@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - met_tk
+id: met_tk_save_action
+label: 'Save met tks'
+type: met_tk
+plugin: entity:save_action:met_tk
+configuration: {  }

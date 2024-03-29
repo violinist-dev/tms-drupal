@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - met_warning
+id: met_warning_delete_action
+label: 'Delete met warnings'
+type: met_warning
+plugin: entity:delete_action:met_warning
+configuration: {  }

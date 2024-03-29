@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for MET warning module.
+ */
+
+use Drupal\Core\Render\Element;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function met_warning_theme(): array {
+  return [
+    'met_warning' => ['render element' => 'elements'],
+  ];
+}
+
+/**
+ * Prepares variables for met warning templates.
+ *
+ * Default template: met-warning.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing the met warning information and any
+ *     fields attached to the entity.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_met_warning(array &$variables): void {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function met_warning_user_cancel($edit, UserInterface $account, $method): void {
+  switch ($method) {
+    case 'user_cancel_block_unpublish':
+      // Unpublish met warnings.
+      $storage = \Drupal::entityTypeManager()->getStorage('met_warning');
+      $met_warning_ids = $storage->getQuery()
+        ->condition('uid', $account->id())
+        ->condition('status', 1)
+        ->accessCheck(FALSE)
+        ->execute();
+      foreach ($storage->loadMultiple($met_warning_ids) as $met_warning) {
+        $met_warning->set('status', FALSE)->save();
+      }
+      break;
+
+    case 'user_cancel_reassign':
+      // Anonymize met warnings.
+      $storage = \Drupal::entityTypeManager()->getStorage('met_warning');
+      $met_warning_ids = $storage->getQuery()
+        ->condition('uid', $account->id())
+        ->accessCheck(FALSE)
+        ->execute();
+      foreach ($storage->loadMultiple($met_warning_ids) as $met_warning) {
+        $met_warning->setOwnerId(0)->save();
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_predelete() for user entities.
+ */
+function met_warning_user_predelete(UserInterface $account): void {
+  // Delete met warnings that belong to this account.
+  $storage = \Drupal::entityTypeManager()->getStorage('met_warning');
+  $met_warning_ids = $storage->getQuery()
+    ->condition('uid', $account->id())
+    ->accessCheck(FALSE)
+    ->execute();
+  $storage->delete(
+    $storage->loadMultiple($met_warning_ids)
+  );
+  // Delete old revisions.
+  $met_warning_ids = $storage->getQuery()
+    ->allRevisions()
+    ->condition('uid', $account->id())
+    ->accessCheck(FALSE)
+    ->execute();
+  foreach (array_keys($met_warning_ids) as $revision_id) {
+    $storage->deleteRevision($revision_id);
+  }
+}

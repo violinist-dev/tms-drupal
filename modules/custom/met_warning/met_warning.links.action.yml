@@ -1,0 +1,5 @@
+met_warning.add_form:
+  title: 'Add met warning'
+  route_name: entity.met_warning.add_form
+  appears_on:
+    - entity.met_warning.collection

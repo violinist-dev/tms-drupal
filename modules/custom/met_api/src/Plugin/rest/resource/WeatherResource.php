@@ -91,6 +91,108 @@ class WeatherResource extends ResourceBase {
 
     fclose($file);
 
+
+    //Because NIWA API doesn't provide visibility and weather condition,
+    //we can get that from the METAR file on MET service website.
+
+    $metar = [];
+
+    $csv_file_name = 'weather_metar.csv';
+    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $file = fopen($absolute_path, "r");
+    while(! feof($file))
+    {
+      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
+        if (!is_null($lines[0])) {
+
+          if(count($lines) == 1) {
+            $type = $lines[0];
+            continue;
+          }
+          $metar[$lines[0]]['icon'] = $lines[1];
+          $metar[$lines[0]]['visibility'] = $lines[7];
+        }
+      }
+    }
+
+    fclose($file);
+
+
+    //Get the live weather data from CSV
+    $csv_file_name = 'live_weather.csv';
+    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $file = fopen($absolute_path, "r");
+
+    $type = '';
+    while(! feof($file))
+    {
+      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
+        if (!is_null($lines[0])) {
+
+          if(count($lines) == 1) {
+            $type = $lines[0];
+            continue;
+          }
+
+          if ($metar[$lines[0]]['icon'] != '')
+            $lines[1] = $metar[$lines[0]]['icon'];
+
+          if ( $metar[$lines[0]]['visibility'] != '')
+            $lines[7] = $metar[$lines[0]]['visibility'];
+
+          $data[$type][] = array_map('trim',$lines);
+        }
+      }
+    }
+
+    fclose($file);
+
+
+    //Read the sea information
+    $csv_file_name = 'live_sea.csv';
+    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $file = fopen($absolute_path, "r");
+
+    $type = '';
+    while(! feof($file))
+    {
+      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
+        if (!is_null($lines[0])) {
+
+          if(count($lines) == 1) {
+            $type = $lines[0];
+            continue;
+          }
+
+          $data[$type][] = array_map('trim',$lines);
+        }
+      }
+    }
+    fclose($file);
+
+
+    //Read tide information
+    $csv_file_name = 'tide.csv';
+    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $file = fopen($absolute_path, "r");
+
+    $type = '';
+    while(! feof($file))
+    {
+      while (($lines = fgetcsv($file, 1000, ",")) !== FALSE) {
+        if (!is_null($lines[0])) {
+
+          if(count($lines) == 1) {
+            $type = $lines[0];
+            continue;
+          }
+
+          $data[$type][] = array_map('trim',$lines);
+        }
+      }
+    }
+    fclose($file);
+
     $build = ['#cache' => ['max-age' => 0]];
 
     return (new ResourceResponse($data, 200))->addCacheableDependency($build);

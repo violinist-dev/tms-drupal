@@ -1,0 +1,22 @@
+entity.met_warning.settings:
+  title: 'Settings'
+  route_name: entity.met_warning.settings
+  base_route: entity.met_warning.settings
+entity.met_warning.view:
+  title: 'View'
+  route_name: entity.met_warning.canonical
+  base_route: entity.met_warning.canonical
+entity.met_warning.edit_form:
+  title: 'Edit'
+  route_name: entity.met_warning.edit_form
+  base_route: entity.met_warning.canonical
+entity.met_warning.delete_form:
+  title: 'Delete'
+  route_name: entity.met_warning.delete_form
+  base_route: entity.met_warning.canonical
+  weight: 10
+entity.met_warning.collection:
+  title: 'MET Warnings'
+  route_name: entity.met_warning.collection
+  base_route: system.admin_content
+  weight: 10

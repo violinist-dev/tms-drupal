@@ -1,0 +1,7 @@
+entity.met_tk.settings:
+  path: 'admin/structure/met-tk'
+  defaults:
+    _form: '\Drupal\met_tk\Form\METTKSettingsForm'
+    _title: 'MET TK'
+  requirements:
+    _permission: 'administer met tks'

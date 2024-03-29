@@ -1,0 +1,10 @@
+met_spc.main:
+  path: '/met-spc/run'
+  defaults:
+    _title: 'SPC API'
+    _controller: '\Drupal\met_spc\Controller\MetSpcController'
+  requirements:
+    _permission: 'access content'
+  options:
+    no_cache: 'TRUE'
+
