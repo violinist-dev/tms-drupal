@@ -2,6 +2,7 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\rest\Plugin\ResourceBase;
@@ -103,9 +104,14 @@ class WarningResource extends ResourceBase {
 
       $new_items[$item->id()] = $data;
     }
-    $build = ['#cache' => ['max-age' => 0]];
 
-    return (new ResourceResponse($new_items, 200))->addCacheableDependency($build);
+    $build = [
+      '#cache' => [
+        'tags' => ['met_warning_list']
+      ]
+    ];
+
+    return (new ResourceResponse($new_items, 200))->addCacheableDependency(CacheableMetadata::createFromRenderArray($build));
   }
 
   public function permissions() {

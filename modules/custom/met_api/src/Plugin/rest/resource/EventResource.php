@@ -2,6 +2,7 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -136,9 +137,14 @@ class EventResource extends ResourceBase {
 
       $new_nodes[$node->id()] = $data;
     }
-    $build = ['#cache' => ['max-age' => 0]];
 
-    return (new ResourceResponse($new_nodes, 200))->addCacheableDependency($build);
+    $build = [
+      '#cache' => [
+        'tags' => ['node_list:event']
+      ]
+    ];
+
+    return (new ResourceResponse($new_nodes, 200))->addCacheableDependency(CacheableMetadata::createFromRenderArray($build));
   }
 
   public function permissions() {

@@ -100,8 +100,8 @@ class UserResource extends ResourceBase{
 
     $payload = json_decode($request->getContent());
 
-    $msg = "<pre>" . print_r($payload, true) . "</pre>";
-    $this->logger->debug($msg);
+   // $msg = "<pre>" . print_r($payload, true) . "</pre>";
+   // $this->logger->debug($msg);
 
     list($updateField) = $payload;
     $account = \Drupal\user\Entity\User::load($uid);

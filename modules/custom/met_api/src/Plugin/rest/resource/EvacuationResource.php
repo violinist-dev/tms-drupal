@@ -2,6 +2,7 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -102,7 +103,7 @@ class EvacuationResource extends ResourceBase {
       $data = [];
       $data['id'] = (int)$node->id();
       $data['title'] = $node->title->value;
-      $data['body'] = $node->body->value;
+      $data['body'] = strip_tags($node->body->value);
       $data['image_large'] = $large_image;
       $data['image_small'] = $thumb_image;
       $data['lat'] = (Double)$lat;
@@ -110,9 +111,14 @@ class EvacuationResource extends ResourceBase {
 
       $new_nodes[] = $data;
     }
-    $build = ['#cache' => ['max-age' => 0]];
 
-    return (new ResourceResponse($new_nodes, 200))->addCacheableDependency($build);
+    $build = [
+      '#cache' => [
+         'tags' => ['node_list:evacuation']
+      ]
+    ];
+
+    return (new ResourceResponse($new_nodes, 200))->addCacheableDependency(CacheableMetadata::createFromRenderArray($build));
   }
 
   public function permissions() {

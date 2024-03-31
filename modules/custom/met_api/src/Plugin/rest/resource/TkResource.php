@@ -2,8 +2,12 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
+use Drupal\file\Entity\File;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
@@ -85,6 +89,37 @@ class TkResource extends ResourceBase {
 
   public function getIndicators() {
 
+    $vid = 'tk_indicators';
+    $terms =\Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid);
+
+    $data = [];
+    $weight = 0;
+    foreach($terms as $term) {
+      $term = Term::load($term->tid);
+
+      //get indicator photo
+      $fid = $term->get('field_photo')->target_id;
+      $file = File::load($fid);
+      $photo_url = $file->createFileUrl(false);
+
+      $desc = $term->get('description')->getValue()[0]['value'];
+
+      $data[] = [
+        'name' => $term->getName(),
+        'desc' => strip_tags($desc),
+        'photo' => $photo_url,
+        'id' => (int)$term->id(),
+        'weight' => ++$weight,
+      ];
+    }
+
+    $build = [
+      '#cache' => [
+        'tags' => ['taxonomy_term_list:tk_indicators']
+        ]
+    ];
+
+    return (new ResourceResponse($data, 200))->addCacheableDependency(CacheableMetadata::createFromRenderArray($build));
   }
 
   public function getTk() {
@@ -94,7 +129,7 @@ class TkResource extends ResourceBase {
       ->condition('status', 1)
       ->accessCheck(FALSE)
       ->sort('created', 'DESC')
-      ->range(0, 10)
+      ->range(0, 100)
       ->execute();
 
     $items =  $storage->loadMultiple($items);
@@ -104,8 +139,8 @@ class TkResource extends ResourceBase {
       $data = [];
 
       //process location
-      $lat = '';
-      $lon = '';
+      $lat = 0;
+      $lon = 0;
       if ($item->field_geo_location->value != "") {
         list($lat, $lon) = explode(", ", $item->field_geo_location->value);
       }
@@ -113,19 +148,33 @@ class TkResource extends ResourceBase {
       $termid = $item->get('field_idicator')->target_id;
       $term = Term::load($termid);
 
+      //get indicator photo
+      $fid = $term->get('field_photo')->target_id;
+      $file = File::load($fid);
+      $photo_url = $file->createFileUrl(false);
+
       $data['indicator'] = [
         'name' => $term->getName(),
         'desc' => $term->get('description')->getValue()[0]->value,
-        'photo' => $term->get('field_photo')->getValue()
+        'photo' => $photo_url,
+        'id' => (int)$term->id(),
       ];
-      $data['id'] = $item->id();
-      $data['lat'] = $lat;
-      $data['lon'] = $lon;
+
+      //get tk photo
+      $fid = $item->get('field_photo')->target_id;
+      $file = File::load($fid);
+      $photo = $file->createFileUrl(false);
+
+      $data['id'] = (int)$item->id();
+      $data['lat'] = (double)$lat;
+      $data['lon'] = (double)$lon;
       $data['time'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'h:i a'); //<-- use time in the image
       $data['date'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'd/m/Y'); // <-- use date in the image
       $data['timestamp'] = $item->created->value;
+      $data['photo'] = $photo;
+      $data['title'] = $item->get('label')->value;
 
-      $new_items[$item->id()] = $data;
+      $new_items[] = $data;
     }
     $build = ['#cache' => ['max-age' => 0]];
 

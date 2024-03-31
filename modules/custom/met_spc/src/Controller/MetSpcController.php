@@ -43,13 +43,14 @@ final class MetSpcController extends ControllerBase {
     $data = [];
     $today = date('Y-m-d');
     $tomorrow = date('Y-m-d', strtotime('+1 days'));
+    $yesterday = date('Y-m-d', strtotime('-1 days'));
     foreach($result as $info) {
 
       $tide_date = date('Y-m-d', strtotime($info[5]));
 
       if ($info[1] == $this->tbu) {
         //check only today tomorrow
-        if ($today == $tide_date || $tomorrow == $tide_date){
+        if ($today == $tide_date || $tomorrow == $tide_date || $yesterday == $tide_date){
           array_unshift($info, 'tbu');
           //$time = new Datetime($info[6]);
           //$time->format("D, j M Y G:i:s") . ' +1300';
@@ -60,7 +61,7 @@ final class MetSpcController extends ControllerBase {
 
       if ($info[1] == $this->vv) {
         //check only today and tomorrow
-        if ($today == $tide_date || $tomorrow == $tide_date){
+        if ($today == $tide_date || $tomorrow == $tide_date || $yesterday == $tide_date){
           array_unshift($info, 'vv');
           //$time = new Datetime($info[6]);
           //$time->format("D, j M Y G:i:s") . ' +1300';
