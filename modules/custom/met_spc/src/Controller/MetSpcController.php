@@ -73,7 +73,7 @@ final class MetSpcController extends ControllerBase {
 
     //Read the sea information
     $csv_file_name = 'tide.csv';
-    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
     $fp = fopen($csv_file_absolute_path, 'w'); // open in write only mode (write at the start of the file)
     fputcsv($fp, ['tide']);
     foreach ($data as $location => $value) {
@@ -94,7 +94,7 @@ final class MetSpcController extends ControllerBase {
 
     //Create new CSV file and put the current weather data there
     $csv_file_name = 'tide.csv';
-    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
 
     $fp = fopen($csv_file_absolute_path, 'w'); // open in write only mode (write at the start of the file)
     fputcsv($fp, ['tide']);

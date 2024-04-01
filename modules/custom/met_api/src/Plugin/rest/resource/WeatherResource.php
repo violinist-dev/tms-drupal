@@ -68,9 +68,16 @@ class WeatherResource extends ResourceBase {
     );
   }
 
+  public function compassToDegree($value) {
+
+  }
+
+
   public function get() {
+
+    //This is the weather forecast that upload by TMS in CSV file format.
     $csv_file_name = 'weather.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
     $file = fopen($absolute_path, "r");
 
     $data = [];
@@ -98,7 +105,7 @@ class WeatherResource extends ResourceBase {
     $metar = [];
 
     $csv_file_name = 'weather_metar.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
     $file = fopen($absolute_path, "r");
     while(! feof($file))
     {
@@ -120,7 +127,7 @@ class WeatherResource extends ResourceBase {
 
     //Get the live weather data from CSV
     $csv_file_name = 'live_weather.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
     $file = fopen($absolute_path, "r");
 
     $type = '';
@@ -150,7 +157,7 @@ class WeatherResource extends ResourceBase {
 
     //Read the sea information
     $csv_file_name = 'live_sea.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
     $file = fopen($absolute_path, "r");
 
     $type = '';
@@ -173,7 +180,7 @@ class WeatherResource extends ResourceBase {
 
     //Read tide information
     $csv_file_name = 'tide.csv';
-    $absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
     $file = fopen($absolute_path, "r");
 
     $type = '';

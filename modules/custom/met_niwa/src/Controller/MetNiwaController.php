@@ -64,30 +64,73 @@ final class MetNiwaController extends ControllerBase {
    */
   public function __invoke(): array {
 
+    // Map the required item to its IDs
     $weather_data = [
       'tbu' => [
         'node_id' => 7628,
-        'channels' => ['temp' => 162469, 'humidity' => 162470, 'barometer' => 162481, 'wind_direction' => 162484, 'wind_speed' => 162729]
-        ],
+        'channels' => [
+          'temp' => 162469,
+          'humidity' => 162470,
+          'barometer' => 162481,
+          'wind_direction' => 162484,
+          'wind_speed' => 162729,
+          'solar_radiation' => 162471
+        ]
+      ],
       'eua' => [
         'node_id' => 7620,
-        'channels' => ['temp' => 161406, 'humidity' => 161407, 'barometer' => 161418, 'wind_direction' => 161421, 'wind_speed' => 206956]
-        ],
+        'channels' => [
+          'temp' => 161406,
+          'humidity' => 161407,
+          'barometer' => 161418,
+          'wind_direction' => 161421,
+          'wind_speed' => 206956,
+          'solar_radiation' => 161408
+        ]
+      ],
       'hpp' => [
         'node_id' => 7624,
-        'channels' => ['temp' => 162447, 'humidity' => 162448, 'barometer' => 162459, 'wind_direction' => 162462, 'wind_speed' => 162727]
-        ],
+        'channels' => [
+          'temp' => 162447,
+          'humidity' => 162448,
+          'barometer' => 162459,
+          'wind_direction' => 162462,
+          'wind_speed' => 162727,
+          'solar_radiation' => 162449
+        ]
+      ],
       'vv' => [
         'node_id' => 7633,
-        'channels' => ['temp' => 162873, 'humidity' => 162874, 'barometer' => 162885, 'wind_direction' => 162886, 'wind_speed' => 163400]
-        ],
+        'channels' => [
+          'temp' => 162873,
+          'humidity' => 162874,
+          'barometer' => 162885,
+          'wind_direction' => 162886,
+          'wind_speed' => 163400,
+          'solar_radiation' => 162875
+        ]
+      ],
       'nfo' => [
         'node_id' => 7547,
-        'channels' => ['temp' => 158708, 'humidity' => 158709, 'barometer' => 158719, 'wind_direction' => 158721, 'wind_speed' => 161187]
+        'channels' => [
+          'temp' => 158708,
+          'humidity' => 158709,
+          'barometer' => 158719,
+          'wind_direction' => 158721,
+          'wind_speed' => 161187,
+          'solar_radiation' => 158710
+        ]
       ],
       'ntt' => [
         'node_id' => 7548,
-        'channels' => ['temp' => 158686, 'humidity' => 158687, 'barometer' => 158697, 'wind_direction' => 158699, 'wind_speed' => 161185]
+        'channels' => [
+          'temp' => 158686,
+          'humidity' => 158687,
+          'barometer' => 158697,
+          'wind_direction' => 158699,
+          'wind_speed' => 161185,
+          'solar_radiation' => 158688
+        ]
       ],
     ];
 
@@ -127,6 +170,7 @@ final class MetNiwaController extends ControllerBase {
       $wind_direction_degree = 0;
       $wind_speed = '';
       $time = '';
+      $solar_radiation = '';
       foreach($result->GetChannelListResult as $channel) {
         $time = $channel->LastTime;
         switch($channel->ID) {
@@ -145,6 +189,9 @@ final class MetNiwaController extends ControllerBase {
             break;
           case $info['channels']['wind_speed']:
             $wind_speed = $channel->LastValue;
+            break;
+          case $info['channels']['solar_radiation']:
+            $solar_radiation = $channel->LastValue;
             break;
         }
       }
@@ -165,6 +212,7 @@ final class MetNiwaController extends ControllerBase {
         'visibility' => "",
         'observed_date' => $time->format("D, j M Y G:i:s") . ' +1300',
         'wind_direction_degree' => $wind_direction_degree,
+        'solar_radiation' => $solar_radiation,
       ];
 
       sleep(2);
@@ -173,7 +221,7 @@ final class MetNiwaController extends ControllerBase {
 
     //Create new CSV file and put the current weather data there
     $csv_file_name = 'live_weather.csv';
-    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
 
     $fp = fopen($csv_file_absolute_path, 'w'); // open in write only mode (write at the start of the file)
     fputcsv($fp, ['weather']);
@@ -210,7 +258,7 @@ final class MetNiwaController extends ControllerBase {
     }
     //Create new CSV file and put the current sea level data there
     $csv_file_name = 'live_sea.csv';
-    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $csv_file_absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
 
     $fp = fopen($csv_file_absolute_path, 'w'); // open in write only mode (write at the start of the file)
     fputcsv($fp, ['sea']);

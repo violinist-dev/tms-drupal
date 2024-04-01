@@ -80,7 +80,7 @@ final class MetDataConverterController extends ControllerBase {
 
     //Create new CSV file and put the current weather data there
     $csv_file_name = 'weather_metar.csv';
-    $csv_absolute_path = \Drupal::service('file_system')->realpath('public://' . $csv_file_name);
+    $csv_absolute_path = \Drupal::service('file_system')->realpath('private://' . $csv_file_name);
 
     $fp = fopen($csv_absolute_path, 'w'); // open in write only mode (write at the start of the file)
     fputcsv($fp, ['current']);

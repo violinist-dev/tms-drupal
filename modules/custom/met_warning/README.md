@@ -1,30 +1,19 @@
 ## INTRODUCTION
 
-The MET warning module is a DESCRIBE_THE_MODULE_HERE.
+The MET warning module is a module that provide a content type for warnings content.
 
 The primary use case for this module is:
 
-- Use case #1
-- Use case #2
-- Use case #3
+- Use this module to create a warning, which automatically feed to the mobile app warning page.
+
 
 ## REQUIREMENTS
 
-DESCRIBE_MODULE_DEPENDENCIES_HERE
+There's no dependency required for this module.
 
 ## INSTALLATION
-
-Install as you would normally install a contributed Drupal module.
-See: https://www.drupal.org/node/895232 for further information.
-
-## CONFIGURATION
-- Configuration step #1
-- Configuration step #2
-- Configuration step #3
+Usual drupal module installation.
 
 ## MAINTAINERS
-
-Current maintainers for Drupal 10:
-
-- FIRST_NAME LAST_NAME (NICKNAME) - https://www.drupal.org/u/NICKNAME
+- Finau H Kaufusi (fkaufusi)
 
