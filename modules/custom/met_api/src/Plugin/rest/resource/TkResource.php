@@ -8,9 +8,12 @@ use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
+use Drupal\met_feel_earthquake\Entity\METFeelEarthquake;
+use Drupal\met_tk\Entity\METTK;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Drupal\taxonomy\Entity\Term;
+use http\Client\Curl\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -83,8 +86,55 @@ class TkResource extends ResourceBase {
       }
   }
 
-  public function post() {
+  public function post($data) {
 
+    //create TK Content
+    $response_code = 201;
+
+    /*
+    if (!$this->currentUser->hasPermission('administer site content')) {
+      $response_msg = 'Access Denied.';
+      $response_code = 403;
+      return $this->response($response_msg, $response_code);
+    }
+    */
+
+    $items = [];
+    foreach ($data as $key => $value) {
+
+      $item = METTK::create(
+        [
+          'field_photo' => $value['image'],
+          'label' => $value['label'],
+          'body' => [
+            'summary' => '',
+            'value' => $value['description'],
+            'format' => 'full_html',
+          ],
+          'field_indicator' => ['target_id' => $value['indicator']],
+          'field_geo_location' => [
+            'lat' => $value['lat'],
+            'lng' => $value['lng'],
+          ],
+          'field_time' => $value['date'],
+          'status' => 0,
+        ]
+      );
+
+
+      $item->enforceIsNew();
+      $item->save();
+      $this->logger->notice($this->t("TK content with id @id saved! \n", ['@id' => $item->id()]));
+      $items[] = $item->id();
+    }
+
+    $response_msg = $this->t("New TK content creates with items : @message", ['@message' => implode(",", $items)]);
+    return $this->response($response_msg, $response_code);
+  }
+
+  public function response($msg, $code) {
+    $response = ['message' => $msg];
+    return new ResourceResponse($response, $code);
   }
 
   public function getIndicators() {
@@ -145,7 +195,7 @@ class TkResource extends ResourceBase {
         list($lat, $lon) = explode(", ", $item->field_geo_location->value);
       }
       //get indicator from taxonomy
-      $termid = $item->get('field_idicator')->target_id;
+      $termid = $item->get('field_indicator')->target_id;
       $term = Term::load($termid);
 
       //get indicator photo
@@ -161,18 +211,26 @@ class TkResource extends ResourceBase {
       ];
 
       //get tk photo
-      $fid = $item->get('field_photo')->target_id;
-      $file = File::load($fid);
-      $photo = $file->createFileUrl(false);
+      $image = $item->get('field_photo')->getValue()[0]['uri'];
+      $photo = $image != null ? $image : '';
+
+      //get author
+      $author = $item->getOwner()->getDisplayName();
+      $uid = $item->getOwner()->Id();
+     // get author image
+      $user = \Drupal\user\Entity\User::load($uid);
+      $author_photo = $user->get('field_user_picture')->getValue()[0]['uri'];
 
       $data['id'] = (int)$item->id();
       $data['lat'] = (double)$lat;
       $data['lon'] = (double)$lon;
-      $data['time'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'h:i a'); //<-- use time in the image
-      $data['date'] = \Drupal::service('date.formatter')->format($item->created->value, 'custom', 'd/m/Y'); // <-- use date in the image
+      $data['time'] = $item->get('field_time')->value; //<-- use time in the image
+      $data['date'] = $item->get('field_time')->value; // <-- use date in the image
       $data['timestamp'] = $item->created->value;
       $data['photo'] = $photo;
       $data['title'] = $item->get('label')->value;
+      $data['author_name'] = $author;
+      $data['author_image'] = $author_photo != '' ? $author_photo : 'https://macres-media-storage.s3.ap-southeast-2.amazonaws.com/user.png';
 
       $new_items[] = $data;
     }
