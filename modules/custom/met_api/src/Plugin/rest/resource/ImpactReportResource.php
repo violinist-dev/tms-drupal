@@ -110,7 +110,11 @@ class ImpactReportResource extends ResourceBase {
           'field_anyone_passed_away' => $value['anyone_passed_away'],
           'field_impacted_items' => $value['impacted_items'],
           'field_images' => $images,
-          'field_event' => $value['event_id']
+          'field_event' => $value['event_id'],
+          'field_geo_location' => [
+            'lat' => $value['lat'],
+            'lng' => $value['lon'],
+          ],
         ]
       );
 

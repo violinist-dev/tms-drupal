@@ -114,6 +114,10 @@ class RequestAssistanceResource extends ResourceBase {
           'field_have_water' => $value['have_water'],
           'field_have_house_shelter' => $value['have_house'],
           'field_have_food' => $value['have_food'],
+          'field_geo_location' => [
+            'lat' => $value['lat'],
+            'lng' => $value['lon'],
+          ],
         ]
       );
 

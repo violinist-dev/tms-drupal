@@ -179,7 +179,7 @@ class TkResource extends ResourceBase {
       ->condition('status', 1)
       ->accessCheck(FALSE)
       ->sort('created', 'DESC')
-      ->range(0, 100)
+      ->range(0, 500)
       ->execute();
 
     $items =  $storage->loadMultiple($items);
@@ -203,9 +203,11 @@ class TkResource extends ResourceBase {
       $file = File::load($fid);
       $photo_url = $file->createFileUrl(false);
 
+      $desc = $term->get('description')->getValue()[0]['value'];
+
       $data['indicator'] = [
         'name' => $term->getName(),
-        'desc' => $term->get('description')->getValue()[0]->value,
+        'desc' => strip_tags($desc),
         'photo' => $photo_url,
         'id' => (int)$term->id(),
       ];
