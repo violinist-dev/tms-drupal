@@ -121,9 +121,18 @@ class TkResource extends ResourceBase {
         ]
       );
 
+      $check = $item->access('create', $this->currentUser);
+
+      if (!$check) {
+        \Drupal::logger('MET API')->notice('Access denied, trying to create ' . $item->getType());
+        $response_msg = 'Access Denied.';
+        $response_code = 403;
+        return $this->response($response_msg, $response_code);
+      }
 
       $item->enforceIsNew();
       $item->save();
+      $item->access('create', $this->currentUser);
       $this->logger->notice($this->t("TK content with id @id saved! \n", ['@id' => $item->id()]));
       $items[] = $item->id();
     }

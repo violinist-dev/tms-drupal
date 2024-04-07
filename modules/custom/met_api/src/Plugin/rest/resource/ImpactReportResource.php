@@ -115,10 +115,20 @@ class ImpactReportResource extends ResourceBase {
             'lat' => $value['lat'],
             'lng' => $value['lon'],
           ],
+          'field_village' => $value['village'],
         ]
       );
 
       $node->enforceIsNew();
+      $check = $node->access('create', $this->currentUser);
+
+      if (!$check) {
+        \Drupal::logger('MET API')->notice('Access denied, trying to create ' . $node->getType());
+        $response_msg = 'Access Denied.';
+        $response_code = 403;
+        return $this->response($response_msg, $response_code);
+      }
+
       $node->save();
       $this->logger->notice($this->t("Node with nid @nid saved! \n", ['@nid' => $node->id()]));
       $nodes[] = $node->id();

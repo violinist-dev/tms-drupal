@@ -89,7 +89,7 @@ class EventResource extends ResourceBase {
       $data = [];
       $data['id'] = $node->id();
       $data['title'] = $node->title->value;
-      $data['body'] = strip_tags($node->body->value);
+      $data['body'] = $node->body->value != '' ? strip_tags($node->body->value) : $node->body->value;
       $data['active'] = $node->field_active->value;
 
       $fields = $node->field_event_type->referencedEntities();

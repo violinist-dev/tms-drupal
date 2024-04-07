@@ -105,8 +105,7 @@ class RequestAssistanceResource extends ResourceBase {
             'value' => $value['body'],
             'format' => 'full_html',
           ],
-          'field_anyone_missing' => $value['anyone_missing'],
-          'field_anyone_passed_away' => $value['anyone_passed_away'],
+
           'field_assistance_with' => $value['assistance_with'],
           'field_needed_now' => $value['needed_now'],
           'field_images' => $images,
@@ -118,11 +117,23 @@ class RequestAssistanceResource extends ResourceBase {
             'lat' => $value['lat'],
             'lng' => $value['lon'],
           ],
+          'field_village' => $value['village'],
         ]
       );
 
+      //check access permission
+      $check = $node->access('create', $this->currentUser);
+
+      if (!$check) {
+        \Drupal::logger('MET API')->notice('Access denied, trying to create ' . $node->getType());
+        $response_msg = 'Access Denied.';
+        $response_code = 403;
+        return $this->response($response_msg, $response_code);
+      }
+
       $node->enforceIsNew();
       $node->save();
+      $node->access('create', $this->currentUser);
       $this->logger->notice($this->t("Node with nid @nid saved! \n", ['@nid' => $node->id()]));
       $nodes[] = $node->id();
     }
