@@ -106,11 +106,12 @@ class FeelEarthquakeResource extends ResourceBase {
         ]
       );
 
+
       //check permission
       $check = $item->access('create', $this->currentUser);
 
       if (!$check) {
-        \Drupal::logger('MET API')->notice('Access denied, trying to create ' . $item->getType());
+        \Drupal::logger('MET API')->notice('Access denied, trying to create MET feel earthquake');
         $response_msg = 'Access Denied.';
         $response_code = 403;
         return $this->response($response_msg, $response_code);
@@ -133,7 +134,12 @@ class FeelEarthquakeResource extends ResourceBase {
   }
 
   public function permissions() {
-    return [];
+    return ['MET API permission for feel an earthquake report' => [
+      'title' => $this->t('MET API permission for Feel and Earthquake Report'),
+      'description' => $this->t('This is a permission to allow access to MET API feel earthquake report'),
+      'restrict access' => true,
+    ],
+    ];
   }
 
 }

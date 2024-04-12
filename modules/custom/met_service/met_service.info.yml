@@ -1,0 +1,7 @@
+name: 'MET Service'
+type: module
+description: 'Provide services required by MET (Firebase push, Websocket server message load)'
+package: MET
+core_version_requirement: ^10
+dependencies:
+  - firebase:firebase

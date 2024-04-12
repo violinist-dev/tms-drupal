@@ -113,7 +113,7 @@ class EventReportResource extends ResourceBase {
       $check = $node->access('create', $this->currentUser);
 
       if (!$check) {
-        \Drupal::logger('MET API')->notice('Access denied, trying to create ' . $node->getType());
+        \Drupal::logger('MET API')->notice('Access denied, trying to create Event Report');
         $response_msg = 'Access Denied.';
         $response_code = 403;
         return $this->response($response_msg, $response_code);

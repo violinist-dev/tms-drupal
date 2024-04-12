@@ -132,7 +132,7 @@ class EventResource extends ResourceBase {
           $feel_data[$value] = count(array_intersect($location, [$value]));
         }
 
-        $data['feel'] = $feel_data;
+        if(count($feel_data) > 0)$data['feel'] = $feel_data;
       }
 
       $new_nodes[$node->id()] = $data;
@@ -140,7 +140,7 @@ class EventResource extends ResourceBase {
 
     $build = [
       '#cache' => [
-        'tags' => ['node_list:event']
+        'tags' => ['node_list:event', 'met_feel_earthquake_list']
       ]
     ];
 

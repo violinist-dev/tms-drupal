@@ -103,7 +103,7 @@ class EvacuationResource extends ResourceBase {
       $data = [];
       $data['id'] = (int)$node->id();
       $data['title'] = $node->title->value;
-      $data['body'] = strip_tags($node->body->value);
+      $data['body'] = $node->body->value != '' ? strip_tags($node->body->value) : $node->body->value;
       $data['image_large'] = $large_image;
       $data['image_small'] = $thumb_image;
       $data['lat'] = (Double)$lat;

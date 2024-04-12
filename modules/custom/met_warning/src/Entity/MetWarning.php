@@ -7,7 +7,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\RevisionableContentEntityBase;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\met_warning\METwarningInterface;
+use Drupal\met_warning\METWarningInterface;
 use Drupal\user\EntityOwnerTrait;
 
 /**
