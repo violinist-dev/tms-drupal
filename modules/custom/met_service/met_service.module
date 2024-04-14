@@ -1,5 +1,7 @@
 <?php
 use Drupal\node\NodeInterface;
+use WebSocket\Client;
+
 
 /**
  * @file
@@ -77,6 +79,9 @@ function met_service_met_warning_insert(\Drupal\met_warning\METWarningInterface 
   $messageService->setOptions(['priority' => 'high']);
   $messageService->send();
 
+
+
+
 }
 
 /**
@@ -89,11 +94,3 @@ function met_service_met_tk_insert(\Drupal\met_tk\METTKInterface $tk) {
 }
 
 
-/**
- * Implements hook_ENTITY_TYPE_insert() for node.
- */
-function met_service_met_feel_earthquake_insert(\Drupal\met_feel_earthquake\METFeelEarthquakeInterface $fe) {
-
-  //load this node info to websocket for delivery to monitoring system
-
-}

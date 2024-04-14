@@ -2,6 +2,7 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\met_feel_earthquake\Entity\METFeelEarthquake;
 use Drupal\node\Entity\Node;
 use Drupal\rest\Plugin\ResourceBase;
@@ -11,6 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Psr\Log\LoggerInterface;
 
+
 /**
  * Provides the API resource for the mobile App
  *
@@ -18,7 +20,8 @@ use Psr\Log\LoggerInterface;
  *   id = "met_feel_earthquake_api_resource",
  *   label = @Translation("MET API Feel Earthquake Report Resouce"),
  *   uri_paths = {
- *      "create" = "/api/v1/feel-earthquake"
+ *     "create" = "/api/v1/feel-earthquake",
+ *     "canonical" = "/api/v1/feel-earthquake/{id}"
  *   }
  * )
  */
@@ -71,6 +74,31 @@ class FeelEarthquakeResource extends ResourceBase {
     );
   }
 
+
+  public function get($id) {
+
+    $storage = \Drupal::service('entity_type.manager')->getStorage('met_feel_earthquake');
+    $item = $storage->load($id);
+
+    //process location
+    $lat = 0;
+    $lon = 0;
+    if ($item->field_geo_location->value != "") {
+      list($lat, $lon) = explode(", ", $item->field_geo_location->value);
+    }
+
+    $item = [
+      'id' => $item->id->value,
+      'lat' => $lat,
+      'lon' => $lon,
+      'rate' => $item->field_rate_earthquake->value,
+      'location' => $item->field_location->value,
+    ];
+
+    return (new ResourceResponse($item, 200));
+  }
+
+
   public function  post($data) {
 
     $response_code = 201;
@@ -85,6 +113,7 @@ class FeelEarthquakeResource extends ResourceBase {
     */
 
     $items = [];
+
     foreach ($data as $key => $value) {
 
       $item = METFeelEarthquake::create(
@@ -125,8 +154,55 @@ class FeelEarthquakeResource extends ResourceBase {
     }
 
     $response_msg = $this->t("New item creates with items : @message", ['@message' => implode(",", $items)]);
+
+
+    //Pass data to websocket server to deliver
+    //---------------------------------------------
+
+    $p = [
+      'rate' => $data[0]['rate_earthquake'],
+      'body' => 'body',
+      'location' => $data[0]['location'],
+      'lat' => $data[0]['lat'],
+      'lng' => $data[0]['lng'],
+    ];
+
+    $payload = [
+      'action' => 'message',
+      'username' => 'drupal',
+      'etype' => 'met_feel_earthquake',
+      'userrole' => 'tms',
+      'payload' => $p,
+    ];
+
+    $this->sendToWebsocket($payload);
+
+    //Close the websocket connection
+    $payload = [
+      'action' => 'left',
+      'username' => 'drupal',
+      'message' => 'left'
+    ];
+
+    $this->sendToWebsocket($payload);
+
     return $this->response($response_msg, $response_code);
   }
+
+
+
+  public function sendToWebsocket($payload) {
+    $payload = json_encode($payload);
+    try {
+      //$sp = new \Paragi\PhpWebsocket\Client('app.met.gov.to',5123);
+      $sp = new \Paragi\PhpWebsocket\Client('host.docker.internal',8080);
+      $sp->write($payload);
+      return true;
+    } catch (\Paragi\PhpWebsocket\ConnectionException $e) {
+      return false;
+    }
+  }
+
 
   public function response($msg, $code) {
     $response = ['message' => $msg];

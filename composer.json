@@ -30,7 +30,9 @@
         "drupal/recaptcha": "^3.2",
         "drupal/restui": "^1.21",
         "drupal/textfield_counter": "^2.3",
-        "drupal/views_autocomplete_filters": "^2.0"
+        "drupal/views_autocomplete_filters": "^2.0",
+        "paragi/php-websocket-client": "^1.0",
+        "textalk/websocket": "1.0.*"
     },
     "conflict": {
         "drupal/drupal": "*"
