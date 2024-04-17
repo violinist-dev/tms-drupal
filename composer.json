@@ -46,6 +46,23 @@
         },
         "sort-packages": true
     },
+    "scripts": {
+        "php_compatibility": [
+            "phpcs -p --standard=PHPCompatibility --extensions=php,inc,module,install --runtime-set testVersion 8.3 modules/custom",
+            "phpcs -p --standard=PHPCompatibility --extensions=php,inc,theme,install --runtime-set testVersion 8.3 themes/custom"
+        ],
+        "coding_standards": [
+            "phpcs --standard=Drupal --extensions=php,module,inc,install modules/custom",
+            "phpcs --standard=Drupal themes/custom --ignore=*/node_modules/*,*.css,*.js,includes/*"
+        ],
+        "coding_standards_fix": [
+            "phpcbf --report=diff --extensions=php,module,inc,install --standard=Drupal modules/custom",
+            "phpcbf --report=diff --standard=Drupal themes/custom --ignore=*/node_modules/*,*.css,*.js,includes/*"
+        ],
+        "drupal_check": [
+            "drupal-check */custom"
+        ]
+    },
     "extra": {
         "drupal-scaffold": {
             "locations": {
@@ -105,6 +122,9 @@
     },
     "require-dev": {
         "drupal/devel": "^5.1",
-        "drush/drush": "^12.1"
+        "drush/drush": "^12.1",
+        "drupal/core-dev": "^10.0",
+        "mglaman/drupal-check": "^1.2",
+        "phpcompatibility/php-compatibility": "^9.3"
     }
 }
