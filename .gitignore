@@ -40,3 +40,8 @@ sites/simpletest
 
 # Ignore multi-site test environment.
 # simpletest
+
+# ignore docker stuff
+docker-init/
+mariadb-init/
+docker-compose.override.yml
