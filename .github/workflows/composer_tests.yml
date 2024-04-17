@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-  coding_standard:
+  coding_standards:
     needs: setup_cache
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -40,8 +40,8 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Coding Standard Check
-        run: composer coding_standard
+      - name: Coding Standards Check
+        run: composer coding_standards
 
   php_compatibility:
     needs: setup_cache
