@@ -1,0 +1,7 @@
+met_service.settings:
+  path: '/admin/config/system/met-service'
+  defaults:
+    _title: 'MET Service'
+    _form: 'Drupal\met_service\Form\SettingsForm'
+  requirements:
+    _permission: 'administer site configuration'

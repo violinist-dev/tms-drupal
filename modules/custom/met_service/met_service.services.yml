@@ -1,0 +1,4 @@
+services:
+  met_service.tms_socket:
+    class: Drupal\met_service\Services\TmsSocketService
+    arguments: []

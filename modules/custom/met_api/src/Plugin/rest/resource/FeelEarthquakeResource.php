@@ -182,7 +182,8 @@ class FeelEarthquakeResource extends ResourceBase {
       'payload' => $p,
     ];
 
-    $this->sendToWebsocket($payload);
+    $tms_socket_service = \Drupal::service('met_service.tms_socket');
+    $tms_socket_service->send($payload);
 
     //Close the websocket connection
     $payload = [
@@ -191,24 +192,10 @@ class FeelEarthquakeResource extends ResourceBase {
       'message' => 'left'
     ];
 
-    $this->sendToWebsocket($payload);
-  //}
+    $tms_socket_service->send($payload);
+    //}
 
     return $this->response($response_msg, $response_code);
-  }
-
-
-
-  public function sendToWebsocket($payload) {
-    $payload = json_encode($payload);
-    try {
-      //$sp = new \Paragi\PhpWebsocket\Client('app.met.gov.to',5123);
-      $sp = new \Paragi\PhpWebsocket\Client('host.docker.internal',8080);
-      $sp->write($payload);
-      return true;
-    } catch (\Paragi\PhpWebsocket\ConnectionException $e) {
-      return false;
-    }
   }
 
 

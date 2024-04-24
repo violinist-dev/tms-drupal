@@ -80,14 +80,19 @@
     socket.send(JSON.stringify(jsonData));
   }
 
-  function onClicked(){
-    console.log('now clicked hello world');
-  }
-
-
   document.addEventListener("DOMContentLoaded", function(){
     //socket = new ReconnectingWebSocket("wss://app.met.gov.to:443", "nimo");
     socket = new ReconnectingWebSocket("ws://127.0.0.1:8080");
+
+
+    document.addEventListener('contextmenu', event => {
+      event.preventDefault();
+    });
+
+    document.querySelectorAll('.disabled').forEach(element => {
+      element.style.pointerEvents = 'none';
+    });
+
 
     let splide = new Splide( '#splide', {
       type: 'loop',
