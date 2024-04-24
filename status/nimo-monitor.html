@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <style>
+    .active{
+      background-color: #faa7a2;
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-3">
+
+  <div class="row">
+    <div class="col-md-2"><img class="brand-logo" src="nimo-logo.png" alt="logo" aria-hidden="true" style="width: 90%; height: auto;"></div>
+    <div class="col-md-7 my-auto"><h1>Communities Report Monitoring</h1></div>
+    <div class="col-md-3 float-end">
+      <div id="status" class="float-end"></div>
+    </div>
+      <hr>
+  </div>
+  <div class="row">
+    <div class="col-md-5">
+      <h3>Report Status</h3>
+      <table class="table table-striped" id="status-table">
+        <thead>
+        <tr>
+          <th scope="col">Type</th>
+          <th scope="col">Date</th>
+          <th scope="col">Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-7 ">
+      <div id="details-info"></div>
+      <div class="splide" id="splide" role="group" aria-label="Splide Basic HTML Example" style="max-width:800px !important;height:auto !important;">
+        <div class="splide__track" >
+          <ul class="splide__list"></ul>
+        </div>
+      </div>
+
+      <div id="map" style="height:300px; margin-bottom: 20px; margin-top: 10px;"></div>
+
+    </div>
+  </div>
+</div>
+<audio id="payloadAlert" muted>
+  <source
+    src="happy-bells-notification-937.wav"
+  />
+</audio>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+
+<script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"> </script>
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src = "https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+<script src="reconnecting-websocket.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://kit.fontawesome.com/332250c0be.js" crossorigin="anonymous"></script>
+
+<script>
+  let socket = null;
+
+  window.onbeforeunload = function() {
+    let jsonData = {};
+    jsonData["action"] = "left";
+    socket.send(JSON.stringify(jsonData));
+  }
+
+  function onClicked(){
+    console.log('now clicked hello world');
+  }
+
+
+  document.addEventListener("DOMContentLoaded", function(){
+    //socket = new ReconnectingWebSocket("wss://app.met.gov.to:443", "nimo");
+    socket = new ReconnectingWebSocket("ws://127.0.0.1:8080");
+
+    let splide = new Splide( '#splide', {
+      type: 'loop',
+      autoplay: true,
+      gap: '5%'
+    }).mount();
+
+    const offline = `<small>Server connection status: </small><span class="badge bg-danger">Not Connected</span>`
+    const online = `<small>Server connection status: </small><span class="badge bg-success">Connected</span>`
+    let statusDiv = document.getElementById("status");
+
+    socket.onopen = () => {
+      console.log("Successfully connected");
+      statusDiv.innerHTML = online;
+    }
+
+    socket.onclose = () => {
+      console.log("connection closed");
+      statusDiv.innerHTML = offline;
+    }
+
+    socket.onerror = error => {
+      console.log("there was an error");
+    }
+
+
+    function clearStorage() {
+      localStorage.removeItem("nimo_records");
+    }
+
+
+    function renderTable(data) {
+      $("#status-table > tbody").prepend(`<tr id="` + data.id + `"><td>` +
+        data.type + "</td><td>" +
+        data.date + "</td><td>" +
+        data.time + "</td></tr>");
+
+      $(document).delegate("#" + data.id, 'click', function(){
+        $("#status-table > tbody > tr > td").removeClass("bg-info");
+        $("#"+data.id+" > td").addClass("bg-info");
+        renderInfo(data);
+      });
+
+    }
+
+    function renderInfo(info) {
+
+      let images = [];
+      let record = null;
+      let lat = null;
+      let lon = null;
+
+      if (info == null) {
+
+        let items = JSON.parse(localStorage.getItem("nimo_records"));
+        let total_items = items.length;
+
+        if (items != null) {
+          record = items[total_items - 1];
+          images = items[total_items - 1].photo;
+          lat = items[total_items - 1].lat;
+          lon = items[total_items - 1].lon;
+        }
+
+      } else {
+        if (info.photo.length > 0) {
+          images = info.photo;
+          record = info;
+          lat = info.Lat;
+          lon = info.Lon;
+        }
+      }
+
+      splide.destroy();
+      $(".splide__list").empty();
+
+      if (images != null) {
+        images.forEach((item, index, arr) => {
+          $(".splide__list").append(`<li class="splide__slide"><img src="` + item + `" class="img-fluid img-thumbnail" style="max-width: 1000px !important; max-height: 500px;"></li>`);
+        });
+      }
+
+      splide = new Splide( '#splide', {
+        type: 'loop',
+        autoplay: true,
+        gap: '5%'
+      }).mount();
+
+      if (record != null) {
+        //show details information on top of images
+        $("#details-info").html(`<div class="pt-2 pb-2 mb-4">
+        <div><span class="font-weight-bold">Title: </span> ` + record.title + `</div>
+          <div class="row">
+            <div class="col-md-6 mt-2 mb-2"> <i class="fa-regular fa-calendar-days"></i>   <span class="font-weight-bold"> Date:</span> ` + record.date + `</div>
+            <div class="col-md-6 mt-2 mb-2"> <i class="fa-solid fa-clock"></i>  <span class="font-weight-bold">Time:</span> ` + record.time + `</div>
+            </div>
+
+          <div><i class="fa-solid fa-message"></i> <span class="font-weight-bold"> Message: </span> ` + record.body + `</div>
+        </div>`);
+      }
+
+      //clean up the map before re-initialise
+      if (lat != null && lon != null) {
+        let container = L.DomUtil.get('map');
+        if(container != null){
+          container._leaflet_id = null;
+        }
+
+        //render map
+        let zoom = 18;
+        let map = L.map('map').setView([lat, lon], zoom);
+        let marker = L.marker([lat, lon]).addTo(map);
+        marker.on('click', (e) => {
+          marker.bindPopup(lat + ", " + lon).openPopup();
+        });
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+      }
+    }
+
+    //clearStorage();
+    loadContent(null);
+
+
+    $("#status-table > tbody > tr").on('click', function() {
+      let records = JSON.parse(localStorage.getItem("nimo_records"));
+      if (records != null) {
+        records.forEach((item, index, arr) => {
+          if (item.id != this.id) {
+            $("#"+item.id+" > td").removeClass("bg-info");
+          } else {
+            $(this).children('td, th').addClass("bg-info");
+            renderInfo(item);
+          }
+        });
+      }
+    });
+
+    socket.onmessage = msg => {
+      let data = JSON.parse(msg.data);
+      console.log("data:", data);
+      switch (data.action) {
+        case "message":
+          if (data.Etype == "met_event_report") {
+            const alertSound = new Audio('happy-bells-notification-937.wav');
+            alertSound.play().catch(function (error) {
+              console.log("Cannot play sound without user interaction first");
+            });
+
+
+            $("#status-table > tbody > tr > td").removeClass("bg-info");
+
+            loadContent(data);
+          }
+          break;
+      }
+    }
+
+    function loadContent(data) {
+
+      //save payload into localstorage
+      //------------------------------------
+      //get the existing records
+      let records = JSON.parse(localStorage.getItem("nimo_records"));
+
+      console.log('message received');
+      console.log('records: ', records);
+
+      if(data == null && records == null)return;
+
+      if (records != null) {
+        if (data != null) {
+          let newrecord = data.Payload;
+          if (records.length >= 50)records.pop(); //<-- keep only 50 records
+          records.push(newrecord);
+          localStorage.setItem("nimo_records", JSON.stringify(records));
+        }
+
+        //check if the container already have a records printed out on screen
+        if ( $('#status-table > tbody').children().length > 0 ) {
+
+          //Add data to the HTML table
+          renderTable(data.Payload);
+
+        } else {
+
+          //could be the browser was refreshed
+          records.forEach((item, index, arr) => {
+            //Add the new record to the table
+            renderTable(item);
+          });
+        }
+      }  else {
+
+        if (data != null) {
+          records = [];
+          records.push(data.Payload);
+          localStorage.setItem("nimo_records", JSON.stringify(records));
+          renderTable(data.Payload);
+        }
+      }
+      renderInfo();
+    }
+
+  })
+</script>
+</html>

@@ -156,15 +156,22 @@ class FeelEarthquakeResource extends ResourceBase {
     $response_msg = $this->t("New item creates with items : @message", ['@message' => implode(",", $items)]);
 
 
+  //We only notify the monitoring system if the report is new and has not been assigned to an event.
+  //if ($data[0]['event_id'] == '' || is_null($data[0]['event_id'])) {
+
     //Pass data to websocket server to deliver
     //---------------------------------------------
+    $current_time = \Drupal::time()->getCurrentTime();
+
+    //Rate
+    //$ratings = [1 => 'Weak', 2 => 'Light', 3 => 'Medium', 4 => 'Strong', 5 => 'Major', 6 => 'Severe'];
 
     $p = [
       'rate' => $data[0]['rate_earthquake'],
       'body' => 'body',
       'location' => $data[0]['location'],
-      'lat' => $data[0]['lat'],
-      'lng' => $data[0]['lng'],
+      'date' => date('d/m/Y', $current_time),
+      'time' => date('h:i a', $current_time),
     ];
 
     $payload = [
@@ -185,6 +192,7 @@ class FeelEarthquakeResource extends ResourceBase {
     ];
 
     $this->sendToWebsocket($payload);
+  //}
 
     return $this->response($response_msg, $response_code);
   }

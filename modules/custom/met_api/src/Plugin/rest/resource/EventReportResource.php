@@ -119,7 +119,6 @@ class EventReportResource extends ResourceBase {
         return $this->response($response_msg, $response_code);
       }
 
-
       $node->enforceIsNew();
       $node->save();
       $node->access('create', $this->currentUser);
@@ -128,7 +127,58 @@ class EventReportResource extends ResourceBase {
     }
 
     $response_msg = $this->t("New Nodes creates with nids : @message", ['@message' => implode(",", $nodes)]);
+
+    //Pass data to websocket server to deliver
+    //---------------------------------------------
+    $current_time = \Drupal::time()->getCurrentTime();
+
+    $p = [
+      'title' => $data[0]['title'],
+      'body' => $data[0]['body'],
+      'lat' => "{$data[0]['lat']}",
+      'lon' => "{$data[0]['lng']}",
+      'date' => date('d/m/Y', $current_time),
+      'time' => date('h:i a', $current_time),
+      'photo' => $data[0]['images'],
+      'type' => 'Event Report',
+      'id' => $nodes[0],
+    ];
+
+    $payload = [
+      'action' => 'message',
+      'username' => 'drupal',
+      'etype' => 'met_event_report',
+      'userrole' => 'tms',
+      'payload' => $p,
+    ];
+
+    $this->sendToWebsocket($payload);
+
+    //Close the websocket connection
+    $payload = [
+      'action' => 'left',
+      'username' => 'drupal',
+      'message' => 'left'
+    ];
+
+    $this->sendToWebsocket($payload);
+
     return $this->response($response_msg, $response_code);
+  }
+
+  public function sendToWebsocket($payload) {
+    $payload = json_encode($payload);
+
+    \Drupal::logger('finau')->debug($payload);
+
+    try {
+      //$sp = new \Paragi\PhpWebsocket\Client('app.met.gov.to',5123);
+      $sp = new \Paragi\PhpWebsocket\Client('host.docker.internal',8080);
+      $sp->write($payload);
+      return true;
+    } catch (\Paragi\PhpWebsocket\ConnectionException $e) {
+      return false;
+    }
   }
 
   public function response($msg, $code) {

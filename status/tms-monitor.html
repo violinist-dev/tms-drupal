@@ -5,52 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <style>
-    .chatbox {
-      outline: 1px solid silver;
-      min-height: 160px;
-      padding: 0.5em;
-    }
-  </style>
-
+  <link href="pulse.css" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-3">
 
   <div class="row">
-    <div class="col">
-      <div class="row">
-        <div class="col-md-2">
-          <img class="brand-logo" src="tms-logo.png" alt="logo" aria-hidden="true" style="width: 90%; height: auto;"></div>
-        <div class="col-md-10 my-auto"><h1>Earthquake Report Monitoring</h1></div>
+    <div class="col-md-2 text-center"><img class="brand-logo" src="tms-logo.png" alt="logo" aria-hidden="true" style="width: 90%; height: auto;max-height: 300px;max-width:300px;"></div>
+    <div class="col-md-7 my-auto"><h1>Earthquake Report Monitoring</h1></div>
+    <div class="col-md-3 d-flex flex-column justify-content-between mb-3">
+      <div id="status" class="float-end mb-3"></div>
+      <!-- drop down menu box for monitoring timeframe -->
+      <div class="form-group align-bottom" >
+        <label for="interval">Change monitoring timeframe</label>
+        <select name="interval" id="interval" class="form-control">
+          <option value="5">5 Minutes</option>
+          <option value="10">10 Minutes</option>
+          <option value="15">15 Minutes</option>
+          <option value="20">20 Minutes</option>
+          <option value="30">30 Minutes</option>
+          <option value="60">60 Minutes</option>
+          <option value="24">24 Hours</option>
+        </select>
       </div>
-      <hr>
-    </div>
   </div>
-
-  <div class="row">
+    <hr>
+  <div class="row" id="data-container">
     <div class="col-md-5">
       <h3>Report Status</h3>
-
       <table class="table table-striped" id="status-table">
         <thead>
         <tr>
           <th scope="col">#</th>
           <th scope="col">Location</th>
-          <th scope="col">Lat</th>
-          <th scope="col">Lon</th>
           <th scope="col">Rating</th>
+          <th scope="col">Date</th>
+          <th scope="col">Time</th>
         </tr>
         </thead>
         <tbody></tbody>
       </table>
-
     </div>
 
-
-    <div class="col-md-7">
-      <canvas id="charts"></canvas>
+    <div class="col-md-7 ">
+      <div class="row mt-5 mb-5">
+        <div id="countdown" class=" col-md-4"></div>
+        <div class="col-md-8 p-3 ml-3" id="monitor-info"></div>
+      </div>
+      <canvas id="charts" class="mt-4 mb-4"></canvas>
     </div>
+  </div>
+  <div id="pulse" class="mt-5">
+    <div class="center">
+      <div class="circle pulse blue"></div>
+      <div class="circle pulse yellow"></div>
+      <div class="circle pulse green"></div>
+      <div class="circle pulse light-blue"></div>
+    </div>
+    <div class="row mt-5">
+      <div class="col-md-12 text-center" style="color: #cccccc;">Waiting for incoming message ...</div>
+    </div>
+
   </div>
 </div>
 <audio id="payloadAlert" muted>
@@ -63,121 +78,333 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="jquery.countdown360.min.js"></script>
+<script src="reconnecting-websocket.min.js"></script>
 <script>
   let socket = null;
 
   window.onbeforeunload = function() {
-    console.log("Leaving");
     let jsonData = {};
     jsonData["action"] = "left";
     socket.send(JSON.stringify(jsonData));
   }
 
 
-
-
   document.addEventListener("DOMContentLoaded", function(){
-    // socket = new WebSocket("ws://app.met.gov.to:5123");
+    //socket = new ReconnectingWebSocket("wss://app.met.gov.to:443", "tms");
+    socket = new ReconnectingWebSocket("ws://127.0.0.1:8080");
+    //Sec-WebSocket-Protocol using server key
 
-    socket = new WebSocket("ws://127.0.0.1:8080");
     let isChart = null;
-    $("body").trigger("click"); //<-- just to allow browser to play sound
+    const offline = `<small>Server connection status: </small><span class="badge bg-danger">Not Connected</span>`
+    const online = `<small>Server connection status: </small><span class="badge bg-success">Connected</span>`
+    let statusDiv = document.getElementById("status");
+    let countdown = null;
 
+    $("#data-container").hide();
 
     socket.onopen = () => {
       console.log("Successfully connected");
+      statusDiv.innerHTML = online;
     }
 
     socket.onclose = () => {
       console.log("connection closed");
+      statusDiv.innerHTML = offline;
     }
 
     socket.onerror = error => {
       console.log("there was an error");
     }
 
-    socket.onmessage = msg => {
-      let data = JSON.parse(msg.data);
-      let alert = document.getElementById('payloadAlert');
 
-      const clickSound = new Audio('mixkit-signal-alert-771.wav');
+    //interval dropdown box
+    $('#interval').on("change", function() {
+      let selected = $(this).val();
+      let seconds = 0;
 
-
-      switch (data.action) {
-        case "message":
-
-          $("#status-table > tbody").prepend("<tr><th scope='row'>#</th><td>" + data.Payload.Location + "</td><td>" + data.Payload.Lat + "</td><td>" + data.Payload.Lng + "</td><td>" + data.Payload.Rate + "</td></tr>");
-          clickSound.play().catch(function (error) {
-            console.log("Chrome cannot play sound without user interaction first");
-          });
-
-          //show chart
-          const ctx = document.getElementById('charts');
-
-          if (isChart != null) isChart.destroy();
-
-          isChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: ['Tongatapu', 'Vavau', 'Haapai', 'Eua', 'Niuafoou', 'Niuatoputapu'],
-              datasets: [
-                {
-                label: '# of Weak',
-                data: [12, 19, 3, 5, 2, 3],
-                borderWidth: 1,
-                //backgroundColor: Utils.CHART_COLORS.red,
-              },
-                {
-                  label: '# of Light',
-                  data: [6, 12, 10, 2, 0, 6],
-                  borderWidth: 1,
-                  //backgroundColor: Utils.CHART_COLORS.blue,
-                },
-                {
-                  label: '# of Moderate',
-                  data: [2, 9, 13, 8, 12, 9],
-                  borderWidth: 1,
-                 // backgroundColor: Utils.CHART_COLORS.green,
-                },
-                {
-                  label: '# of Strong',
-                  data: [6, 19, 3, 5, 2, 13],
-                  borderWidth: 1,
-                 // backgroundColor: Utils.CHART_COLORS.yellow,
-                },
-                {
-                  label: '# of Major',
-                  data: [15, 3, 3, 15, 2, 3],
-                  borderWidth: 1,
-                 // backgroundColor: Utils.CHART_COLORS.green,
-                },
-
-                {
-                  label: '# of Severe',
-                  data: [15, 3, 3, 15, 2, 3],
-                  borderWidth: 1,
-                 // backgroundColor: Utils.CHART_COLORS.red,
-                },
-
-              ]
-            },
-            options: {
-              responsive: true,
-              scales: {
-                x: {
-                  stacked: true,
-                },
-                y: {
-                  stacked: true
-                }
-              }
-            }
-          });
-
-          break;
+      if (selected != 24) {
+        seconds = selected * 60;
+      } else {
+        seconds = (selected * 60) * 60;
       }
 
-      //console.log(j);
+      localStorage.setItem("selected_interval", selected);
+      localStorage.setItem("selected_interval_seconds", seconds);
+      location.reload();
+
+    });
+
+
+    let selected = localStorage.getItem("selected_interval");
+    if (selected != null) {
+      $("#interval").val(selected);
+
+    } else {
+      localStorage.setItem("selected_interval", 20);
+    }
+
+    function renderCountDown(seconds) {
+      $("#countdown").countdown360({
+        radius      : 60.5,
+        seconds     : seconds,
+        strokeWidth : 9,
+        fillStyle   : '#0276FD',
+        strokeStyle : '#003F87',
+        fontSize    : 30,
+        fontColor   : '#FFFFFF',
+        autostart: false,
+        onComplete  : function () {
+          //Clear data & refresh browser
+          clearStorage();
+          location.reload();
+          $("#data-container").hide();
+          //turn on pulse
+        }
+      }).start();
+    }
+
+    function clearStorage() {
+      localStorage.removeItem("records");
+      localStorage.removeItem("start_time");
+    }
+
+    function renderChart(data) {
+
+      //show chart
+      const ctx = document.getElementById('charts');
+      if (isChart != null) isChart.destroy();
+
+      isChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Tongatapu', 'Vavau', 'Haapai', 'Eua', 'Niuafoou', 'Niuatoputapu'],
+          datasets: [
+
+            {
+              label: 'Weak',
+              data: data[0], //[12, 19, 3, 5, 2, 3],
+              borderWidth: 1,
+              //borderColor: '#fdf5f5',
+              //backgroundColor: '#fdf5f5'
+            },
+            {
+              label: 'Light',
+              data: data[1], // [6, 12, 10, 2, 0, 6],
+              borderWidth: 1,
+              //borderColor: '#fce9e9',
+              //backgroundColor: '#fce9e9'
+            },
+            {
+              label: 'Moderate',
+              data: data[2], //[2, 9, 13, 8, 12, 9],
+              borderWidth: 1,
+              //borderColor: '#f8d3d3',
+              //backgroundColor: '#f8d3d3'
+            },
+            {
+              label: 'Strong',
+              data: data[3], // [6, 19, 3, 5, 2, 13],
+              borderWidth: 1,
+              //borderColor: '#ea7b7b',
+              //backgroundColor: '#ea7b7b'
+            },
+            {
+              label: 'Major',
+              data: data[4], // [15, 3, 3, 15, 2, 3],
+              borderWidth: 1,
+              //borderColor: '#e34f4f',
+              //backgroundColor: '#e34f4f'
+            },
+
+            {
+              label: 'Severe',
+              data: data[5], // [15, 3, 3, 15, 2, 3],
+              borderWidth: 1,
+              //borderColor: '#dc2323',
+              //backgroundColor: '#dc2323'
+            },
+
+          ]
+        },
+        plugins: [ChartDataLabels],
+        options: {
+          plugins: {
+            datalabels: {
+              formatter: v => v ? v : '',
+              color: '#000000',
+            }
+          },
+          responsive: true,
+          scales: {
+            x: {
+              stacked: true,
+            },
+            y: {
+              stacked: true,
+              ticks: {
+                stepSize: 1
+              }
+            },
+          },
+        },
+
+      });
+
+
+    }
+
+
+    function ratingToLabel(rating) {
+      let labels = ['Weak', 'Light', 'Moderate', 'Strong', 'Major', 'Severe'];
+      return labels[rating - 1];
+    }
+
+    function renderTable(data) {
+      let rating = ratingToLabel(data.rate);
+      $("#status-table > tbody").prepend("<tr><th scope='row'>#</th><td>" +
+        data.location + "</td><td>" +
+        rating + "</td><td>" +
+        data.date + "</td><td>" +
+        data.time + "</td></tr>");
+    }
+
+    function renderInfo() {
+
+      let selectedInterval = localStorage.getItem("selected_interval_seconds");
+      let interval = selectedInterval != null ? selectedInterval : 3600;
+      renderCountDown(interval);
+
+        //Monitoring info box
+        let time = new Date();
+
+        let startTime = localStorage.getItem('start_time');
+        if (startTime == null) {
+          localStorage.setItem('start_time', time.toLocaleString());
+          startTime = time.toLocaleString();
+        }
+
+      let selected = localStorage.getItem("selected_interval");
+      let timeframe = "";
+      if (selected == 24) {
+        timeframe = selected + ' hours';
+      } else {
+        timeframe = selected + ' minutes';
+      }
+
+        $("#monitor-info").html("<div>Monitoring is in progress. </div>" +
+          "<div>Start at: " + startTime + "</div>" +
+          "<div>Timeframe: " + timeframe  + "</div>"
+        );
+        $("#monitor-info").addClass('border');
+    }
+
+
+    loadContent(null);
+
+    socket.onmessage = msg => {
+      let data = JSON.parse(msg.data);
+      switch (data.action) {
+        case "message":
+          if (data.Etype == 'met_feel_earthquake') {
+            const alertSound = new Audio('mixkit-signal-alert-771.wav');
+            alertSound.play().catch(function (error) {
+              console.log("Cannot play sound without user interaction first");
+            });
+
+            loadContent(data);
+          }
+          break;
+      }
+    }
+
+
+
+    function loadContent(data) {
+
+      //save payload into localstorage
+      //------------------------------------
+      //get the existing records
+      let records = JSON.parse(localStorage.getItem("records"));
+
+      if(data == null && records == null) {
+        $("#data-container").hide();
+        $("#pulse").show();
+        return;
+      }
+
+      $("#data-container").show();
+      $("#pulse").hide();
+
+      if (records != null) {
+        if (data != null) {
+          let newrecord = data.Payload;
+          records.push(newrecord);
+          localStorage.setItem("records", JSON.stringify(records));
+        }
+
+        //check if the container already have a records printed out on screen
+        if ( $('#status-table > tbody').children().length > 0 ) {
+
+          //Add data to the HTML table
+          renderTable(data.Payload);
+
+        } else {
+
+          renderInfo();
+          //could be the browser was refreshed
+          records.forEach((item, index, arr) => {
+            //Add the new record to the table
+            renderTable(item);
+          });
+        }
+      }  else {
+
+        if (data != null) {
+          renderInfo();
+          records = [];
+          records.push(data.Payload);
+          localStorage.setItem("records", JSON.stringify(records));
+          renderTable(data.Payload);
+        }
+      }
+
+      let d = JSON.parse(localStorage.getItem("records"));
+
+      let r = [
+        [0, 0, 0, 0, 0, 0], //weak
+        [0, 0, 0, 0, 0, 0], //light
+        [0, 0, 0, 0, 0, 0], //moderate
+        [0, 0, 0, 0, 0, 0], //strong
+        [0, 0, 0, 0, 0, 0], //major
+        [0, 0, 0, 0, 0, 0]  //severe
+      ];
+
+      d.forEach((item, index, arr) => {
+
+        switch(item.location) {
+          case 'tongatapu':
+            r[item.rate - 1][0] += 1;
+            break;
+          case 'vavau':
+            r[item.rate - 1][1] += 1;
+            break;
+          case 'haapai':
+            r[item.rate - 1][2] += 1;
+            break;
+          case 'eua':
+            r[item.rate - 1][3] += 1;
+            break;
+          case 'niuafoou':
+            r[item.rate - 1][4] += 1;
+            break;
+          case 'niuatoputapu':
+            r[item.rate - 1][5] += 1;
+            break;
+        }
+      });
+      renderChart(r);
     }
 
   })
