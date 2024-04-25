@@ -1,0 +1,6 @@
+met_niwa.settings:
+  title: MET NIWA Configuration
+  description: Configure MET NIWA API
+  parent: system.admin_config_system
+  route_name: met_niwa.settings
+  weight: 10

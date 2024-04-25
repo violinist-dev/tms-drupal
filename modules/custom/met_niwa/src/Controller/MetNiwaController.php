@@ -10,11 +10,19 @@ use \Datetime;
  */
 final class MetNiwaController extends ControllerBase {
 
-  private $api_base_url = 'https://restservice-neon1.niwa.co.nz:443/NeonRESTService.svc/';
-  private $token_enpoint = 'GetSession?u=TMS-Mobile-App&p=TMSMobile1!'; //<-- @TODO - Move credential to config file or environment file.
+  private $api_base_url;
+  private $token_enpoint;
   private $data_enpoint = 'GetChannelList/';
 
   private static $token = '';
+
+  public function __construct() {
+
+    $config = \Drupal::configFactory()->getEditable('met_niwa.settings');
+    $this->api_base_url = $config->get('url');
+    $this->token_enpoint = $config->get('endpoint');
+  }
+
 
   private function callApi($url, $header = ['Content-Type: application/json']) {
     if (empty(self::$token)) {

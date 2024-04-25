@@ -11,9 +11,17 @@ use \Datetime;
 final class MetSpcController extends ControllerBase {
 
   //Nuku'alofa and Neiafu data endpoint
-  private $data_endpoint_base_url = 'https://oceanportal.spc.int/tide/TON/INT_TP053/';
+  private $data_endpoint_base_url;
   public $vv = 'INT_TP025';
   public $tbu = 'INT_TP053';
+  private $token;
+
+
+  public function __construct() {
+    $config = \Drupal::configFactory()->getEditable('met_spc.settings');
+    $this->data_endpoint_base_url = $config->get('url');
+    $this->token = $config->get('token');
+  }
 
   private function callApi($url, $header = ['Content-Type: application/json']) {
     $curl = curl_init();
@@ -36,9 +44,8 @@ final class MetSpcController extends ControllerBase {
   public function __invoke(): array {
 
     $query_start_date = date('Y-m-d', strtotime("-2 days")); //'2024-01-01/';
-    $query_token = '6b6a1f8f5a75b760b91a414d76c6b831774dd52802a76f41@!a'; //<-- @TODO - Move token to config file or environment file for security.
 
-    $result = $this->callApi($this->data_endpoint_base_url.$query_start_date.'/'.$query_token);
+    $result = $this->callApi($this->data_endpoint_base_url.$query_start_date.'/'.$this->token);
 
     $data = [];
     $today = date('Y-m-d');

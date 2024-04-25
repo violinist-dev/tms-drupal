@@ -1,0 +1,11 @@
+# Schema for the configuration files of the MET SPC module.
+met_spc.settings:
+  type: config_object
+  label: 'MET SPC settings'
+  mapping:
+    url:
+      type: string
+      label: 'URL'
+    token:
+      type: string
+      label: 'token'

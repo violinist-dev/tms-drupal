@@ -8,3 +8,11 @@ met_niwa.main:
   options:
     no_cache: 'TRUE'
 
+
+met_niwa.settings:
+  path: '/admin/config/system/met-niwa'
+  defaults:
+    _title: 'MET NIWA Configuration'
+    _form: 'Drupal\met_niwa\Form\SettingsForm'
+  requirements:
+    _permission: 'administer site configuration'

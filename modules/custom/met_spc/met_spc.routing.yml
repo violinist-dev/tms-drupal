@@ -8,3 +8,11 @@ met_spc.main:
   options:
     no_cache: 'TRUE'
 
+
+met_spc.settings:
+  path: '/admin/config/system/met-spc'
+  defaults:
+    _title: 'MET SPC API Configuration'
+    _form: 'Drupal\met_spc\Form\SettingsForm'
+  requirements:
+    _permission: 'administer site configuration'

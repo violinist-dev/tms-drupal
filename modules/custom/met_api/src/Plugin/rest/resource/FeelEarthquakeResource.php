@@ -155,9 +155,8 @@ class FeelEarthquakeResource extends ResourceBase {
 
     $response_msg = $this->t("New item creates with items : @message", ['@message' => implode(",", $items)]);
 
-
   //We only notify the monitoring system if the report is new and has not been assigned to an event.
-  //if ($data[0]['event_id'] == '' || is_null($data[0]['event_id'])) {
+  if (empty($data[0]['event_id'])) {
 
     //Pass data to websocket server to deliver
     //---------------------------------------------
@@ -193,7 +192,7 @@ class FeelEarthquakeResource extends ResourceBase {
     ];
 
     $tms_socket_service->send($payload);
-    //}
+    }
 
     return $this->response($response_msg, $response_code);
   }

@@ -133,9 +133,55 @@ class ImpactReportResource extends ResourceBase {
       $this->logger->notice($this->t("Node with nid @nid saved! \n", ['@nid' => $node->id()]));
       $nodes[] = $node->id();
     }
-
     $response_msg = $this->t("New Nodes creates with nids : @message", ['@message' => implode(",", $nodes)]);
+
+
+    //Pass data to websocket server to deliver
+    //---------------------------------------------
+    $current_time = \Drupal::time()->getCurrentTime();
+
+    $p = [
+      'name' => $data[0]['full_name'],
+      'phone' => $data[0]['phone'],
+      'location' => $data[0]['location'],
+      'category' => $data[0]['category'],
+      'missing' => $data[0]['anyone_missing'],
+      'body' => $data[0]['body'],
+      'pass_away' => $data[0]['anyone_passed_away'],
+      'impacted_items' => $data[0]['impacted_items'],
+      'photo' => $data[0]['images'],
+      'event_id' => $data[0]['event_id'],
+      'lat' => $data[0]['lat'],
+      'lon' => $data[0]['lon'],
+      'village' => $data[0]['village'],
+      'date' => date('d/m/Y', $current_time),
+      'time' => date('h:i a', $current_time),
+      'type' => 'Impact Report',
+      'id' => $nodes[0].'ir', //<-- unique id
+    ];
+
+    $payload = [
+      'action' => 'message',
+      'username' => 'drupal',
+      'etype' => 'impact_report',
+      'userrole' => 'tms',
+      'payload' => $p,
+    ];
+
+    $tms_socket_service = \Drupal::service('met_service.tms_socket');
+    $tms_socket_service->send($payload);
+
+    //Close the websocket connection
+    $payload = [
+      'action' => 'left',
+      'username' => 'drupal',
+      'message' => 'left'
+    ];
+
+    $tms_socket_service->send($payload);
+
     return $this->response($response_msg, $response_code);
+
   }
 
   public function response($msg, $code) {
