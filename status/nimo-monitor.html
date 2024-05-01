@@ -7,11 +7,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <style>
-    .active{
-      background-color: #faa7a2;
-    }
-  </style>
+  <link rel="stylesheet" href="nimo-monitor.css" rel="stylesheet">
+
 </head>
 <body>
 <div class="container mt-3">
@@ -41,14 +38,47 @@
     </div>
     <div class="col-md-7 ">
       <div id="details-info"></div>
-      <div class="splide" id="splide" role="group" aria-label="Splide Basic HTML Example" style="max-width:800px !important;height:auto !important;">
-        <div class="splide__track" >
-          <ul class="splide__list"></ul>
+      <!-- tab start -->
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Photos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Map</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">Details</button>
+        </li>
+      </ul>
+      <div class="tab-content" id="myTabContent">
+        <!-- Image tab -->
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+
+          <div class="splide" id="splide" role="group" aria-label="Splide Basic HTML Example" style="max-width:800px !important;height:auto !important;">
+            <div class="splide__track" >
+              <ul class="splide__list"></ul>
+            </div>
+          </div>
         </div>
+
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+          <!-- Add the map -->
+          <div id="map" style="height:400px; margin-bottom: 20px; margin-top: 10px;"></div>
+          <!-- End map -->
+        </div>
+
+        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+          <!-- Add payload details -->
+          <div class="mt-3">
+            <table class="table table-striped" id="payload-details-table">
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
-
-      <div id="map" style="height:300px; margin-bottom: 20px; margin-top: 10px;"></div>
-
+    <!-- tab end -->
     </div>
   </div>
 </div>
@@ -74,25 +104,56 @@
 <script>
   let socket = null;
 
+  //When client left
   window.onbeforeunload = function() {
     let jsonData = {};
     jsonData["action"] = "left";
     socket.send(JSON.stringify(jsonData));
   }
 
+  $("#profile-tab").on('click', function(){
+    let lat = $('#map').attr("lat");
+    let lon = $('#map').attr("lon");
+
+    if (lat != null) {
+        let container = L.DomUtil.get('map');
+        if(container != null){
+          container._leaflet_id = null;
+        }
+
+        //render map
+        let zoom = 18;
+        let map = L.map('map').setView([lat, lon], zoom);
+        let marker = L.marker([lat, lon]).addTo(map);
+        marker.on('click', (e) => {
+          marker.bindPopup(lat + ", " + lon).openPopup();
+        });
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+    }
+  });
+
   document.addEventListener("DOMContentLoaded", function(){
     //socket = new ReconnectingWebSocket("wss://app.met.gov.to:443", "nimo");
     socket = new ReconnectingWebSocket("ws://127.0.0.1:8080");
 
+      var triggerTabList = [].slice.call(document.querySelectorAll('#myTab a'))
+      triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl)
+        triggerEl.addEventListener('click', function (event) {
+          event.preventDefault()
+          tabTrigger.show()
+        })
+      })
+      //hot fix overwrite background active tab
+      $(".active").css({"backgruond-color" : "#ffffff"});
 
     document.addEventListener('contextmenu', event => {
-      event.preventDefault();
+     // event.preventDefault();
     });
-
-    document.querySelectorAll('.disabled').forEach(element => {
-      element.style.pointerEvents = 'none';
-    });
-
 
     let splide = new Splide( '#splide', {
       type: 'loop',
@@ -131,11 +192,18 @@
         data.time + "</td></tr>");
 
       $(document).delegate("#" + data.id, 'click', function(){
-        $("#status-table > tbody > tr > td").removeClass("bg-info");
+        $(".bg-info").removeClass("bg-info");
         $("#"+data.id+" > td").addClass("bg-info");
+
+        //pass Coordinates
+        $("#map").attr("lat", data.lat);
+        $("#map").attr("lon", data.lon);
+
+        //re-activate home tab
+        $("#home-tab").tab('show');
+
         renderInfo(data);
       });
-
     }
 
     function renderInfo(info) {
@@ -146,7 +214,6 @@
       let lon = null;
 
       if (info == null) {
-
         let items = JSON.parse(localStorage.getItem("nimo_records"));
         let total_items = items.length;
 
@@ -158,21 +225,82 @@
         }
 
       } else {
-        if (info.photo.length > 0) {
           images = info.photo;
           record = info;
           lat = info.Lat;
           lon = info.Lon;
-        }
       }
 
+      if (record == null)return;
+
+     //render the report details tabs
+      $("#payload-details-table > tbody").empty();
+
+      let fields = [];
+      fields['type'] = 'Type';
+      fields['name'] = 'Full Name';
+      fields['phone'] = 'Phone';
+      fields['title'] = 'Title';
+      fields['body'] = 'Message';
+      fields['category'] = 'Category';
+      fields['impacted_items'] = 'Impacted Items';
+      fields['location'] = 'Location';
+      fields['village'] = 'Village';
+      fields['missing'] = 'Anyone missing';
+      fields['pass_away'] = 'Anyone passed away';
+      fields['impacted_items'] = 'Impacted Items';
+      fields['event_id'] = 'Event';
+      fields['assistance_with'] = 'Need assistance with';
+      fields['have_food'] = 'Do you have food?';
+      fields['have_shelter'] = 'Do you have shelter?';
+      fields['have_water'] = 'Do you have water?';
+      fields['needed_now'] = 'What you needed now?';
+
+      for (let k in fields){
+
+          if (record[k] != undefined) {
+            if (k == 'assistance_with' || k == 'needed_now' || k == 'impacted_items') {
+              if (Array.isArray(record[k])) {
+                let filtered = record[k].filter(function (el) {
+                  return el != "";
+                });
+                //reformat the text
+                let el = '<ul>';
+                filtered?.forEach((i, index, arr) => {
+                  el += '<li class="text-capitalize">' + i + '</li>';
+                });
+                el += '</ul>';
+                record[k] = el;
+              }
+            }
+
+            if (k == 'have_food' || k == 'have_shelter' || k == 'have_water' || k == 'pass_away' || k == 'missing') {
+              record[k] = record[k] == 1 ? 'Yes' : 'No';
+            }
+
+            $("#payload-details-table > tbody").append('<tr>' +
+              '<td class="text-weight-bold">' + fields[k] +':</td>' +
+              '<td>' + record[k]  +'</td>' +
+              '</tr>');
+          }
+
+      }
+
+      //Configure slide images
       splide.destroy();
       $(".splide__list").empty();
 
       if (images != null) {
+        if(images.length > 0){
+          $(".splide").show();
+        } else {
+          $(".splide").hide();
+        }
         images.forEach((item, index, arr) => {
-          $(".splide__list").append(`<li class="splide__slide"><img src="` + item + `" class="img-fluid img-thumbnail" style="max-width: 1000px !important; max-height: 500px;"></li>`);
+          $(".splide__list").append(`<li class="splide__slide"><img src="` + item + `" class="img-thumbnail" ></li>`);
         });
+      } else {
+        $(".splide").hide();
       }
 
       splide = new Splide( '#splide', {
@@ -180,40 +308,22 @@
         autoplay: true,
         gap: '5%'
       }).mount();
+      //End images configuration
 
       if (record != null) {
         //show details information on top of images
         $("#details-info").html(`<div class="pt-2 pb-2 mb-4">
-        <div><span class="font-weight-bold">Title: </span> ` + record.title + `</div>
           <div class="row">
             <div class="col-md-6 mt-2 mb-2"> <i class="fa-regular fa-calendar-days"></i>   <span class="font-weight-bold"> Date:</span> ` + record.date + `</div>
             <div class="col-md-6 mt-2 mb-2"> <i class="fa-solid fa-clock"></i>  <span class="font-weight-bold">Time:</span> ` + record.time + `</div>
             </div>
-
-          <div><i class="fa-solid fa-message"></i> <span class="font-weight-bold"> Message: </span> ` + record.body + `</div>
         </div>`);
       }
 
-      //clean up the map before re-initialise
+      //pass map location to attr
       if (lat != null && lon != null) {
-        let container = L.DomUtil.get('map');
-        if(container != null){
-          container._leaflet_id = null;
-        }
-
-        //render map
-        let zoom = 18;
-        let map = L.map('map').setView([lat, lon], zoom);
-        let marker = L.marker([lat, lon]).addTo(map);
-        marker.on('click', (e) => {
-          marker.bindPopup(lat + ", " + lon).openPopup();
-        });
-
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
+        $("#map").attr("lat", lat);
+        $("#map").attr("lon", lon);
       }
     }
 
@@ -221,6 +331,7 @@
     loadContent(null);
 
 
+    // handle click on table tr
     $("#status-table > tbody > tr").on('click', function() {
       let records = JSON.parse(localStorage.getItem("nimo_records"));
       if (records != null) {
@@ -235,20 +346,18 @@
       }
     });
 
+    //When there's a new message arrive
     socket.onmessage = msg => {
       let data = JSON.parse(msg.data);
-      console.log("data:", data);
+
       switch (data.action) {
         case "message":
-          if (data.Etype == "met_event_report") {
+          if (data.Etype == "met_event_report" || data.Etype == "impact_report" || data.Etype == "request_assistance") {
             const alertSound = new Audio('happy-bells-notification-937.wav');
             alertSound.play().catch(function (error) {
               console.log("Cannot play sound without user interaction first");
             });
-
-
-            $("#status-table > tbody > tr > td").removeClass("bg-info");
-
+            $(".bg-info").removeClass("bg-info");
             loadContent(data);
           }
           break;
@@ -261,10 +370,6 @@
       //------------------------------------
       //get the existing records
       let records = JSON.parse(localStorage.getItem("nimo_records"));
-
-      console.log('message received');
-      console.log('records: ', records);
-
       if(data == null && records == null)return;
 
       if (records != null) {
