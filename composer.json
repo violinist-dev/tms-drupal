@@ -17,6 +17,7 @@
     "require": {
         "caophihung94/php-simple-html-dom-parser": "^1.7",
         "composer/installers": "^2.0",
+        "cweagans/composer-patches": "^1.7",
         "drupal/admin_toolbar": "^3.4",
         "drupal/charts": "^5.0",
         "drupal/core-composer-scaffold": "^10.0",
@@ -24,13 +25,17 @@
         "drupal/core-recommended": "^10.0",
         "drupal/core-vendor-hardening": "^10.0",
         "drupal/firebase": "^3.0",
-        "drupal/geolocation": "^3.12",
+        "drupal/geolocation": "^3.13",
         "drupal/hal": "^2.0",
+        "drupal/jquery_ui": "^1.6",
+        "drupal/jquery_ui_autocomplete": "^2.0",
         "drupal/paragraphs": "^1.15",
         "drupal/recaptcha": "^3.2",
+        "drupal/remote_image": "^2.0",
         "drupal/restui": "^1.21",
         "drupal/textfield_counter": "^2.3",
         "drupal/views_autocomplete_filters": "^2.0",
+        "mglaman/composer-drupal-lenient": "^1.0",
         "paragi/php-websocket-client": "^1.0",
         "textalk/websocket": "1.0.*"
     },
@@ -46,7 +51,9 @@
             "drupal/core-project-message": true,
             "drupal/core-vendor-hardening": true,
             "phpstan/extension-installer": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "mglaman/composer-drupal-lenient": true,
+            "cweagans/composer-patches": true
         },
         "sort-packages": true
     },
@@ -104,6 +111,16 @@
                 "      https://www.drupal.org/getting-involved",
                 "  * Remove the plugin that prints this message:",
                 "      composer remove drupal/core-project-message"
+            ]
+        },
+        "patches": {
+            "drupal/remote_image": {
+                "3439031 - Update core_version_requirement to enable installation by composer": "https://www.drupal.org/files/issues/2024-04-15/drupal10-3439031-7.patch"
+            }
+        },
+        "drupal-lenient": {
+            "allowed-list": [
+                "drupal/remote_image"
             ]
         }
     },
