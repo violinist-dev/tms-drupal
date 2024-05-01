@@ -1,0 +1,83 @@
+<?php declare(strict_types = 1);
+
+/**
+ * @file
+ * Provides a met tk entity type.
+ */
+
+use Drupal\Core\Render\Element;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function met_tk_theme(): array {
+  return [
+    'met_tk' => ['render element' => 'elements'],
+  ];
+}
+
+/**
+ * Prepares variables for met tk templates.
+ *
+ * Default template: met-tk.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing the met tk information and any
+ *     fields attached to the entity.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_met_tk(array &$variables): void {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function met_tk_user_cancel($edit, UserInterface $account, $method): void {
+  switch ($method) {
+    case 'user_cancel_block_unpublish':
+      // Unpublish met tks.
+      $storage = \Drupal::entityTypeManager()->getStorage('met_tk');
+      $met_tk_ids = $storage->getQuery()
+        ->condition('uid', $account->id())
+        ->condition('status', 1)
+        ->accessCheck(FALSE)
+        ->execute();
+      foreach ($storage->loadMultiple($met_tk_ids) as $met_tk) {
+        $met_tk->set('status', FALSE)->save();
+      }
+      break;
+
+    case 'user_cancel_reassign':
+      // Anonymize met tks.
+      $storage = \Drupal::entityTypeManager()->getStorage('met_tk');
+      $met_tk_ids = $storage->getQuery()
+        ->condition('uid', $account->id())
+        ->accessCheck(FALSE)
+        ->execute();
+      foreach ($storage->loadMultiple($met_tk_ids) as $met_tk) {
+        $met_tk->setOwnerId(0)->save();
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_predelete() for user entities.
+ */
+function met_tk_user_predelete(UserInterface $account): void {
+  // Delete met tks that belong to this account.
+  $storage = \Drupal::entityTypeManager()->getStorage('met_tk');
+  $met_tk_ids = $storage->getQuery()
+    ->condition('uid', $account->id())
+    ->accessCheck(FALSE)
+    ->execute();
+  $storage->delete(
+    $storage->loadMultiple($met_tk_ids)
+  );
+}

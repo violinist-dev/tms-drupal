@@ -1,0 +1,5 @@
+name: 'MET SPC'
+type: module
+description: 'Get live tide data from SPC API.'
+package: MET
+core_version_requirement: ^10

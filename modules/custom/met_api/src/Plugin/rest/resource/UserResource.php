@@ -96,7 +96,13 @@ class UserResource extends ResourceBase{
   }
   public function patch(Request $request, $uid) {
 
+    $this->logger->debug('user id uid: ' . $uid);
+
     $payload = json_decode($request->getContent());
+
+   // $msg = "<pre>" . print_r($payload, true) . "</pre>";
+   // $this->logger->debug($msg);
+
     list($updateField) = $payload;
     $account = \Drupal\user\Entity\User::load($uid);
 

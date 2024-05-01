@@ -1,0 +1,6 @@
+met_spc.settings:
+  title: MET SPC API Configuration
+  description: Configure SPC API
+  parent: system.admin_config_system
+  route_name: met_spc.settings
+  weight: 10

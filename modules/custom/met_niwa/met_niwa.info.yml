@@ -1,0 +1,5 @@
+name: 'MET NIWA'
+type: module
+description: 'Get live weather data from NIWA API.'
+package: MET
+core_version_requirement: ^10

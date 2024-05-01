@@ -1,0 +1,11 @@
+entity.met_tk.settings:
+  title: 'MET TK'
+  description: 'Configure a MET TK entity type.'
+  route_name:  entity.met_tk.settings
+  parent: system.admin_structure
+
+entity.met_tk.collection:
+  title: 'MET TKs'
+  description: 'List of met tks.'
+  route_name: entity.met_tk.collection
+  parent: system.admin_content

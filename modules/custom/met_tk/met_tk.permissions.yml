@@ -1,0 +1,11 @@
+administer met tks:
+  title: 'Administer met tks'
+  restrict access: true
+delete met tk:
+  title: 'Delete met tk'
+create met tk:
+  title: 'Create met tk'
+view met tk:
+  title: 'View met tk'
+edit met tk:
+  title: 'Edit met tk'

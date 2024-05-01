@@ -2,6 +2,7 @@
 
 namespace Drupal\met_api\Plugin\rest\resource;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\met_feel_earthquake\Entity\METFeelEarthquake;
 use Drupal\node\Entity\Node;
 use Drupal\rest\Plugin\ResourceBase;
@@ -11,6 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Psr\Log\LoggerInterface;
 
+
 /**
  * Provides the API resource for the mobile App
  *
@@ -18,7 +20,8 @@ use Psr\Log\LoggerInterface;
  *   id = "met_feel_earthquake_api_resource",
  *   label = @Translation("MET API Feel Earthquake Report Resouce"),
  *   uri_paths = {
- *      "create" = "/api/v1/feel-earthquake"
+ *     "create" = "/api/v1/feel-earthquake",
+ *     "canonical" = "/api/v1/feel-earthquake/{id}"
  *   }
  * )
  */
@@ -71,6 +74,31 @@ class FeelEarthquakeResource extends ResourceBase {
     );
   }
 
+
+  public function get($id) {
+
+    $storage = \Drupal::service('entity_type.manager')->getStorage('met_feel_earthquake');
+    $item = $storage->load($id);
+
+    //process location
+    $lat = 0;
+    $lon = 0;
+    if ($item->field_geo_location->value != "") {
+      list($lat, $lon) = explode(", ", $item->field_geo_location->value);
+    }
+
+    $item = [
+      'id' => $item->id->value,
+      'lat' => $lat,
+      'lon' => $lon,
+      'rate' => $item->field_rate_earthquake->value,
+      'location' => $item->field_location->value,
+    ];
+
+    return (new ResourceResponse($item, 200));
+  }
+
+
   public function  post($data) {
 
     $response_code = 201;
@@ -85,6 +113,7 @@ class FeelEarthquakeResource extends ResourceBase {
     */
 
     $items = [];
+
     foreach ($data as $key => $value) {
 
       $item = METFeelEarthquake::create(
@@ -106,15 +135,68 @@ class FeelEarthquakeResource extends ResourceBase {
         ]
       );
 
+
+      //check permission
+      $check = $item->access('create', $this->currentUser);
+
+      if (!$check) {
+        \Drupal::logger('MET API')->notice('Access denied, trying to create MET feel earthquake');
+        $response_msg = 'Access Denied.';
+        $response_code = 403;
+        return $this->response($response_msg, $response_code);
+      }
+
       $item->enforceIsNew();
+      $item->access('create', $this->currentUser);
       $item->save();
       $this->logger->notice($this->t("Item with id @id saved! \n", ['@id' => $item->id()]));
       $items[] = $item->id();
     }
 
     $response_msg = $this->t("New item creates with items : @message", ['@message' => implode(",", $items)]);
+
+  //We only notify the monitoring system if the report is new and has not been assigned to an event.
+  if (empty($data[0]['event_id'])) {
+
+    //Pass data to websocket server to deliver
+    //---------------------------------------------
+    $current_time = \Drupal::time()->getCurrentTime();
+
+    //Rate
+    //$ratings = [1 => 'Weak', 2 => 'Light', 3 => 'Medium', 4 => 'Strong', 5 => 'Major', 6 => 'Severe'];
+
+    $p = [
+      'rate' => $data[0]['rate_earthquake'],
+      'body' => 'body',
+      'location' => $data[0]['location'],
+      'date' => date('d/m/Y', $current_time),
+      'time' => date('h:i a', $current_time),
+    ];
+
+    $payload = [
+      'action' => 'message',
+      'username' => 'drupal',
+      'etype' => 'met_feel_earthquake',
+      'userrole' => 'tms',
+      'payload' => $p,
+    ];
+
+    $tms_socket_service = \Drupal::service('met_service.tms_socket');
+    $tms_socket_service->send($payload);
+
+    //Close the websocket connection
+    $payload = [
+      'action' => 'left',
+      'username' => 'drupal',
+      'message' => 'left'
+    ];
+
+    $tms_socket_service->send($payload);
+    }
+
     return $this->response($response_msg, $response_code);
   }
+
 
   public function response($msg, $code) {
     $response = ['message' => $msg];
@@ -122,7 +204,12 @@ class FeelEarthquakeResource extends ResourceBase {
   }
 
   public function permissions() {
-    return [];
+    return ['MET API permission for feel an earthquake report' => [
+      'title' => $this->t('MET API permission for Feel and Earthquake Report'),
+      'description' => $this->t('This is a permission to allow access to MET API feel earthquake report'),
+      'restrict access' => true,
+    ],
+    ];
   }
 
 }

@@ -1,0 +1,6 @@
+met_service.settings:
+  title: MET Service Configuration
+  description: Configuration for met_service module
+  parent: system.admin_config_system
+  route_name: met_service.settings
+  weight: 10

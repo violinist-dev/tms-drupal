@@ -1,0 +1,11 @@
+entity.met_warning.settings:
+  title: 'MET Warning'
+  description: 'Configure a MET Warning entity type.'
+  route_name:  entity.met_warning.settings
+  parent: system.admin_structure
+
+entity.met_warning.collection:
+  title: 'MET Warnings'
+  description: 'List of met warnings.'
+  route_name: entity.met_warning.collection
+  parent: system.admin_content

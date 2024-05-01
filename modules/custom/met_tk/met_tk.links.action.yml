@@ -1,0 +1,5 @@
+met_tk.add_form:
+  title: 'Add met tk'
+  route_name: entity.met_tk.add_form
+  appears_on:
+    - entity.met_tk.collection

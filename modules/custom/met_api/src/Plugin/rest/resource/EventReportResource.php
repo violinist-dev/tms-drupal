@@ -101,17 +101,69 @@ class EventReportResource extends ResourceBase {
           'value' => $value['body'],
           'format' => 'full_html',
           ],
-        'field_images' => $images
-        ]
+        'field_images' => $images,
+        'field_geo_location' => [
+          'lat' => $value['lat'],
+          'lng' => $value['lng'],
+        ],
+      ]
       );
+
+      //check permission
+      $check = $node->access('create', $this->currentUser);
+
+      if (!$check) {
+        \Drupal::logger('MET API')->notice('Access denied, trying to create Event Report');
+        $response_msg = 'Access Denied.';
+        $response_code = 403;
+        return $this->response($response_msg, $response_code);
+      }
 
       $node->enforceIsNew();
       $node->save();
+      $node->access('create', $this->currentUser);
       $this->logger->notice($this->t("Node with nid @nid saved! \n", ['@nid' => $node->id()]));
       $nodes[] = $node->id();
     }
 
     $response_msg = $this->t("New Nodes creates with nids : @message", ['@message' => implode(",", $nodes)]);
+
+    //Pass data to websocket server to deliver
+    //---------------------------------------------
+    $current_time = \Drupal::time()->getCurrentTime();
+
+    $p = [
+      'title' => $data[0]['title'],
+      'body' => $data[0]['body'],
+      'lat' => "{$data[0]['lat']}",
+      'lon' => "{$data[0]['lng']}",
+      'date' => date('d/m/Y', $current_time),
+      'time' => date('h:i a', $current_time),
+      'photo' => $data[0]['images'],
+      'type' => 'Event Report',
+      'id' => $nodes[0],
+    ];
+
+    $payload = [
+      'action' => 'message',
+      'username' => 'drupal',
+      'etype' => 'met_event_report',
+      'userrole' => 'tms',
+      'payload' => $p,
+    ];
+
+    $tms_socket_service = \Drupal::service('met_service.tms_socket');
+    $tms_socket_service->send($payload);
+
+    //Close the websocket connection
+    $payload = [
+      'action' => 'left',
+      'username' => 'drupal',
+      'message' => 'left'
+    ];
+
+    $tms_socket_service->send($payload);
+
     return $this->response($response_msg, $response_code);
   }
 

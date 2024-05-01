@@ -105,8 +105,7 @@ class RequestAssistanceResource extends ResourceBase {
             'value' => $value['body'],
             'format' => 'full_html',
           ],
-          'field_anyone_missing' => $value['anyone_missing'],
-          'field_anyone_passed_away' => $value['anyone_passed_away'],
+
           'field_assistance_with' => $value['assistance_with'],
           'field_needed_now' => $value['needed_now'],
           'field_images' => $images,
@@ -114,16 +113,87 @@ class RequestAssistanceResource extends ResourceBase {
           'field_have_water' => $value['have_water'],
           'field_have_house_shelter' => $value['have_house'],
           'field_have_food' => $value['have_food'],
+          'field_geo_location' => [
+            'lat' => $value['lat'],
+            'lng' => $value['lon'],
+          ],
+          'field_village' => $value['village'],
         ]
       );
 
+      //check access permission
+      $check = $node->access('create', $this->currentUser);
+
+      if (!$check) {
+        \Drupal::logger('MET API')->notice('Access denied, trying to create Assistance Report');
+        $response_msg = 'Access Denied.';
+        $response_code = 403;
+        return $this->response($response_msg, $response_code);
+      }
+
       $node->enforceIsNew();
       $node->save();
+      $node->access('create', $this->currentUser);
       $this->logger->notice($this->t("Node with nid @nid saved! \n", ['@nid' => $node->id()]));
       $nodes[] = $node->id();
     }
 
     $response_msg = $this->t("New Nodes creates with nids : @message", ['@message' => implode(",", $nodes)]);
+
+
+    //Pass data to websocket server to deliver
+    //---------------------------------------------
+    $current_time = \Drupal::time()->getCurrentTime();
+
+    //get village name from term id
+    $term = \Drupal::service('entity_type.manager')->getStorage('taxonomy_term')->load($data[0]['village']);
+    $village = $term->getName();
+
+    //get event name from event id
+    $event = \Drupal::service('entity_type.manager')->getStorage('node')->load($data[0]['event_id']);
+    $event_name = $event->getTitle();
+
+    $p = [
+      'name' => $data[0]['full_name'],
+      'phone' => $data[0]['phone'],
+      'location' => $data[0]['location'],
+      'have_shelter' => $data[0]['have_house'],
+      'assistance_with' => $data[0]['assistance_with'],
+      'body' => $data[0]['body'],
+      'needed_now' => $data[0]['needed_now'],
+      'have_water' => $data[0]['have_water'],
+      'have_food' => $data[0]['have_food'],
+      'photo' => $data[0]['images'],
+      'event_id' => $event_name,
+      'lat' => $data[0]['lat'],
+      'lon' => $data[0]['lon'],
+      'village' => $village,
+      'date' => date('d/m/Y', $current_time),
+      'time' => date('h:i a', $current_time),
+      'type' => 'Request Assistance',
+      'id' => $nodes[0].'ra', //<-- unique id
+    ];
+
+    $payload = [
+      'action' => 'message',
+      'username' => 'drupal',
+      'etype' => 'request_assistance',
+      'userrole' => 'tms',
+      'payload' => $p,
+    ];
+
+    $tms_socket_service = \Drupal::service('met_service.tms_socket');
+    $tms_socket_service->send($payload);
+
+    //Close the websocket connection
+    $payload = [
+      'action' => 'left',
+      'username' => 'drupal',
+      'message' => 'left'
+    ];
+
+    $tms_socket_service->send($payload);
+
     return $this->response($response_msg, $response_code);
   }
 

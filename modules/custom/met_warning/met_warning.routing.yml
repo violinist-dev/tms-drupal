@@ -1,0 +1,7 @@
+entity.met_warning.settings:
+  path: 'admin/structure/met-warning'
+  defaults:
+    _form: '\Drupal\met_warning\Form\METWarningSettingsForm'
+    _title: 'MET warning'
+  requirements:
+    _permission: 'administer met warnings'
