@@ -1,1 +1,70 @@
 <?php
+
+use Drupal\node\NodeInterface;
+
+/**
+ * @file
+ * Primary module hooks for met_service module.
+ */
+
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node.
+ */
+function met_service_node_insert(NodeInterface $node)
+{
+  switch ($node->bundle()) {
+    case 'event':
+      // send push notification new event
+      _sendEventNotification();
+      break;
+  }
+}
+
+function _sendEventNotification()
+{
+  //do something with warning entity (send firebase message)
+  $messageService = \Drupal::service('firebase.message');
+  $messageService->setNotification([
+    'title' => 'New Event',
+    'body' => "There's a new event has been created",
+    'badge' => 1,
+    //  'icon' => 'https://64f1-2001-8003-47a8-6700-180-b34d-6c2f-9799.ngrok-free.app/sites/default/files/warning.jpg',
+    'sound' => 'default',
+    // 'click_action' => 'optional-action',
+  ]);
+  $messageService->setData([
+    'event' => 1,
+    'warning' => 0,
+  ]);
+  $messageService->setTopics(['tonga']);
+  $messageService->setOptions(['priority' => 'normal']);
+  $messageService->send();
+}
+
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node.
+ */
+function met_service_met_warning_insert(\Drupal\met_warning\METWarningInterface $warning)
+{
+
+  //do something with warning entity (send firebase message)
+  $messageService = \Drupal::service('firebase.message');
+  $messageService->setNotification([
+    'title' => 'New Warning',
+    'body' => "There's a new warning has been issued",
+    'badge' => 1,
+    //  'icon' => 'https://64f1-2001-8003-47a8-6700-180-b34d-6c2f-9799.ngrok-free.app/sites/default/files/warning.jpg',
+    'sound' => 'default',
+    // 'click_action' => 'optional-action',
+  ]);
+  $messageService->setData([
+    'event' => 0,
+    'warning' => 1,
+  ]);
+  $messageService->setTopics(['tonga']);
+  $messageService->setOptions(['priority' => 'high']);
+  $messageService->send();
+
+}

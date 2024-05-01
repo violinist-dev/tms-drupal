@@ -140,6 +140,14 @@ class ImpactReportResource extends ResourceBase {
     //---------------------------------------------
     $current_time = \Drupal::time()->getCurrentTime();
 
+    //get village name from term id
+    $term = \Drupal::service('entity_type.manager')->getStorage('taxonomy_term')->load($data[0]['village']);
+    $village = $term->getName();
+
+    //get event name from event id
+    $event = \Drupal::service('entity_type.manager')->getStorage('node')->load($data[0]['event_id']);
+    $event_name = $event->getTitle();
+
     $p = [
       'name' => $data[0]['full_name'],
       'phone' => $data[0]['phone'],
@@ -150,10 +158,10 @@ class ImpactReportResource extends ResourceBase {
       'pass_away' => $data[0]['anyone_passed_away'],
       'impacted_items' => $data[0]['impacted_items'],
       'photo' => $data[0]['images'],
-      'event_id' => $data[0]['event_id'],
+      'event_id' => $event_name,
       'lat' => $data[0]['lat'],
       'lon' => $data[0]['lon'],
-      'village' => $data[0]['village'],
+      'village' => $village,
       'date' => date('d/m/Y', $current_time),
       'time' => date('h:i a', $current_time),
       'type' => 'Impact Report',

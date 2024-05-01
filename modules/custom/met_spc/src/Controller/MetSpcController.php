@@ -36,8 +36,6 @@ final class MetSpcController extends ControllerBase {
     return json_decode($result);
   }
 
-
-
   /**
    * Builds the response.
    */

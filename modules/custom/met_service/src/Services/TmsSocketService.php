@@ -24,7 +24,8 @@ class TmsSocketService {
 
     $payload = json_encode($payload);
     try {
-      $sp = new Client($this->host,$this->port);
+      $str_err = '';
+      $sp = new Client($this->host,$this->port, '', $str_err, 10, true);
       $sp->write($payload);
       return true;
     } catch (ConnectionException $e) {
