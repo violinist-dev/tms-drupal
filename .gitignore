@@ -45,3 +45,6 @@ sites/simpletest
 docker-init/
 mariadb-init/
 docker-compose.override.yml
+
+.ddev/
+*/contrib/
