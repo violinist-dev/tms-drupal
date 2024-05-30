@@ -49,10 +49,9 @@ docker-init/
 mariadb-init/
 docker-compose.override.yml
 
-<<<<<<< HEAD
 .ddev/
 */contrib/
-=======
+
 # ignore contrib modules
 modules/contrib/
->>>>>>> b88bff7c (MAC-166: Core upgrade.)
+
