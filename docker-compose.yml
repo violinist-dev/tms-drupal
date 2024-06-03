@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   mariadb:
     image: wodby/mariadb:$MARIADB_TAG
@@ -21,13 +19,13 @@ services:
       SSMTP_MAILHUB: mailhog:1025
 #      SSMTP_MAILHUB: opensmtpd:25
       PHP_SENDMAIL_PATH: '"/usr/bin/dos2unix -u | /usr/sbin/ssmtp -t -f"'
-#      DB_HOST: $DB_HOST
-#      DB_PORT: $DB_PORT
-#      DB_USER: $DB_USER
-#      DB_PASSWORD: $DB_PASSWORD
-#      DB_NAME: $DB_NAME
-#      DB_DRIVER: $DB_DRIVER
-#      DRUSH_OPTIONS_URI: "http://${PROJECT_BASE_URL}:${PROJECT_PORT}"
+      DB_HOST: $DB_HOST
+      DB_PORT: $DB_PORT
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_NAME
+      DB_DRIVER: $DB_DRIVER
+      DRUSH_OPTIONS_URI: "http://${PROJECT_BASE_URL}:${PROJECT_PORT}"
 #      PHP_FPM_USER: wodby
 #      PHP_FPM_GROUP: wodby
 #      COLUMNS: 80 # Set 80 columns for docker exec -it.
@@ -48,6 +46,8 @@ services:
 #      MINK_DRIVER_ARGS_WEBDRIVER: '["chrome", {"browserName":"chrome","goog:chromeOptions":{"args":["--disable-gpu","--headless"]}}, "http://chrome:9515"]'
     volumes:
     - ./:/var/www/html:cached
+    - ./settings.docker.php:/var/www/conf/settings.docker.php
+    - ./docker-init/files/:/mnt/files
 ## Alternative for macOS users: Mutagen https://wodby.com/docs/stacks/drupal/local#docker-for-mac
 #    - drupal:/var/www/html
 ## For XHProf and Xdebug profiler traces
@@ -61,6 +61,8 @@ services:
     command: sudo -E crond -f -d 0
     volumes:
     - ./:/var/www/html:cached
+    - ./settings.docker.php:/var/www/conf/settings.docker.php
+    - ./docker-init/files/:/mnt/files
 ## Alternative for macOS users: Mutagen https://wodby.com/docs/stacks/drupal/local#docker-for-mac
 #    - drupal:/var/www/html
 

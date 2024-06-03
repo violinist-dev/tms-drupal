@@ -55,3 +55,5 @@ docker-compose.override.yml
 # ignore contrib modules
 modules/contrib/
 
+# ignore ide settings
+.vscode/settings.json
