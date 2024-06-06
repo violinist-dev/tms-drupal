@@ -64,7 +64,11 @@ jobs:
             - run: lando drush cr
 
             # This will run tests. If any tests fail, it will fail here.
-            - name: Run tests
+            - name: Run tests TMS API
               run: lando composer test-tms-api
+
+            - name: Run tests NIWA API
               run: lando composer test-niwa-api
+
+            - name: Run tests SPC API
               run: lando composer test-spc-api
