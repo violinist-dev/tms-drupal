@@ -59,7 +59,7 @@ jobs:
             - run: lando composer install
             - run: lando composer require --dev drupal/core-dev
             - run: lando ssh --command "cp .github/workflows/phpunit.xml core/phpunit.xml"
-            - run: lando ssh --command "cp .env.example .env"
+            - run: lando ssh --command "cp core/.env.example .env"
             - run: lando drush site:install -y
             - run: lando drush cr
 
