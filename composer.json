@@ -58,9 +58,17 @@
             "phpstan/extension-installer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "mglaman/composer-drupal-lenient": true,
-            "cweagans/composer-patches": true
+            "cweagans/composer-patches": true,
+            "php-http/discovery": true
         },
         "sort-packages": true
+    },
+    
+    "scripts": {
+        "test": "phpunit",
+        "test-tms-api": "vendor/bin/phpunit -c core modules/custom/met_api",
+        "test-niwa-api": "vendor/bin/phpunit -c core modules/custom/met_niwa",
+        "test-spc-api": "vendor/bin/phpunit -c core modules/custom/met_spc"
     },
     "extra": {
         "drupal-scaffold": {
@@ -130,6 +138,7 @@
         }
     },
     "require-dev": {
+        "drupal/core-dev": "^10.2",
         "drupal/devel": "^5.1",
         "drush/drush": "^12.1"
     }
