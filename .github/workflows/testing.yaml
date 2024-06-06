@@ -35,9 +35,9 @@ jobs:
             - run: lando composer require --dev drupal/core-dev
             - run: lando ssh --command "cp .github/workflows/phpunit.xml core/phpunit.xml"
             - run: lando ssh --command "cp core/.env.example .env"
-            #- run: lando info
-            #- run: lando drush site:install -y
-            #- run: lando drush cr
+            - run: lando info
+            - run: lando drush si -y --db-url=mysql://drupal10:drupal10@database:3306/drupal10
+            - run: lando drush cr
 
             # This will run tests. If any tests fail, it will fail here.
             - name: Run tests TMS API
