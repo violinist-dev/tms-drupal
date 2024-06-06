@@ -6,14 +6,6 @@ on:
 
 env:
     LANDO_VERSION: v3.21.0
-    APP_ENV: testing
-    APP_DEBUG: true
-    DB_CONNECTION: mysql
-    DB_HOST: database
-    DB_PORT: 3306
-    DB_DATABASE: drupal10
-    DB_USERNAME: drupal10
-    DB_PASSWORD: drupal10
 
 jobs:
     test:
@@ -36,33 +28,16 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-php-
 
-            # Map GH Actions env vars into Lando env vars, which wil then be injected
-            # into the application container.
-            - run: |
-                  cat > .lando.local.yml <<EOF
-                  services:
-                      appserver:
-                          overrides:
-                              environment:
-                                  APP_ENV: '$APP_ENV'
-                                  APP_DEBUG: '$APP_DEBUG'
-                                  DB_CONNECTION: $DB_CONNECTION
-                                  DB_HOST: $DB_HOST
-                                  DB_PORT: $DB_PORT
-                                  DB_DATABASE: $DB_DATABASE
-                                  DB_USERNAME: $DB_USERNAME
-                                  DB_PASSWORD: $DB_PASSWORD
-                  EOF
-
+          
             # Boot Lando and set up Drupal
             - run: lando start
             - run: lando composer install
             - run: lando composer require --dev drupal/core-dev
             - run: lando ssh --command "cp .github/workflows/phpunit.xml core/phpunit.xml"
             - run: lando ssh --command "cp core/.env.example .env"
-            - run: lando info
-            - run: lando drush site:install -y
-            - run: lando drush cr
+            #- run: lando info
+            #- run: lando drush site:install -y
+            #- run: lando drush cr
 
             # This will run tests. If any tests fail, it will fail here.
             - name: Run tests TMS API
