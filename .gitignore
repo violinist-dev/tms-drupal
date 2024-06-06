@@ -57,3 +57,5 @@ modules/contrib/
 
 # ignore ide settings
 .vscode/settings.json
+
+.env
