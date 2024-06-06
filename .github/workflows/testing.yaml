@@ -9,7 +9,7 @@ env:
     APP_ENV: testing
     APP_DEBUG: true
     DB_CONNECTION: mysql
-    DB_HOST: database
+    DB_HOST: db
     DB_PORT: 3306
     DB_DATABASE: drupal10
     DB_USERNAME: drupal10
@@ -54,7 +54,7 @@ jobs:
                                   DB_PASSWORD: $DB_PASSWORD
                   EOF
 
-            # Boot Lando and set up Laravel
+            # Boot Lando and set up Drupal
             - run: lando start
             - run: lando composer install
             - run: lando composer require --dev drupal/core-dev
