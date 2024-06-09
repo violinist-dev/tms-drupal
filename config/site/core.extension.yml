@@ -68,6 +68,7 @@ module:
   sendgrid_api: 0
   sendgrid_mailer: 0
   serialization: 0
+  shortcut: 0
   system: 0
   taxonomy: 0
   text: 0
