@@ -1,10 +1,9 @@
 met_data_converter.example:
-  path: '/met-data-converter/run'
+  path: "/met-data-converter/run"
   defaults:
-    _title: 'Data Converter'
+    _title: "Data Converter"
     _controller: '\Drupal\met_data_converter\Controller\MetDataConverterController'
   requirements:
-    _permission: 'access content'
+    _access: "TRUE"
   options:
-    no_cache: 'TRUE'
-
+    no_cache: "TRUE"

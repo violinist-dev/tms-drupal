@@ -5,46 +5,61 @@ on:
   - push
 
 env:
-    LANDO_VERSION: v3.21.0
+  LANDO_VERSION: v3.21.0
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
-            - name: Grab latest Lando CLI
-              run: |
-                    sudo curl -fsSL -o /usr/local/bin/lando "https://files.lando.dev/cli/lando-linux-x64-${LANDO_VERSION}"
-                    sudo chmod +x /usr/local/bin/lando
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Grab latest Lando CLI
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/lando "https://files.lando.dev/cli/lando-linux-x64-${LANDO_VERSION}"
+          sudo chmod +x /usr/local/bin/lando
 
-            # This is optional.
-            - name: Cache Composer packages
-              id: composer-cache
-              uses: actions/cache@v3
-              with:
-                  path: vendor
-                  key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-php-
+      # This is optional.
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-          
-            # Boot Lando and set up Drupal
-            - run: lando start
-            - run: lando composer install
-            - run: lando composer require --dev drupal/core-dev
-            - run: lando ssh --command "cp .github/workflows/phpunit.xml core/phpunit.xml"
-            - run: lando ssh --command "cp core/.env.example .env"
-            - run: lando info
-            - run: lando drush si -y --db-url=mysql://drupal10:drupal10@database:3306/drupal10
-            - run: lando drush cr
+      # Boot Lando and set up Drupal
+      - run: lando start
+      - run: lando composer install
+      - run: lando composer require --dev drupal/core-dev
+      - run: lando ssh --command "cp modules/custom/met_api/test/modules/met_api_test/assets/phpunit.xml core/phpunit.xml"
+      - run: lando ssh --command "cp core/.env.example .env"
 
-            # This will run tests. If any tests fail, it will fail here.
-            - name: Run tests TMS API
-              run: lando composer test-tms-api
+      # Install Drupal
+      - run: lando drush si -y --db-url=mysql://drupal10:drupal10@database:3306/drupal10
+      - run: lando drush cim --partial --source=config/site -y
 
-            - name: Run tests NIWA API
-              run: lando composer test-niwa-api
+      # Set private file path
+      - run: lando ssh --command 'mkdir /var/www/private'
+      - run: lando ssh --command 'echo \$settings[\"file_private_path\"] = \"/var/www/private\"\; >> /app/sites/default/settings.php'
+      - run: lando drush cr
 
-            - name: Run tests SPC API
-              run: lando composer test-spc-api
+      # Run NIWA API to fetch weather data
+      - name: Fetch weather data from NIWA API
+        run: lando ssh --command "curl 'http://met-api.lndo.site/met-niwa/run'"
+
+      - name: Fetch tide data from SPC API
+        run: lando ssh --command "curl 'http://met-api.lndo.site/met-spc/run'"
+
+      # Enable the test module
+      - run: lando drush en met_api_test
+
+      # This will run tests. If any tests fail, it will fail here.
+      - name: Run tests TMS API
+        run: lando composer test-tms-api
+
+      - name: Run tests NIWA API
+        run: lando composer test-niwa-api
+
+      - name: Run tests SPC API
+        run: lando composer test-spc-api
