@@ -54,7 +54,6 @@ module:
   met_tide_data: 0
   met_tk: 0
   met_warning: 0
-  migrate_file: 0
   mysql: 0
   node: 0
   options: 0
