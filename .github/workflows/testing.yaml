@@ -55,7 +55,8 @@ jobs:
 
       - name: Fetch tide data from SPC API
         run: lando ssh --command "curl 'http://met-api.lndo.site/met-spc/run'"
-
+  test:
+    steps:
       # Enable the test module
       - run: lando drush en met_api_test
 
