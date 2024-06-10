@@ -43,8 +43,9 @@ jobs:
       - run: lando drush cim --source=config/site -y
 
       # Set private file path
-      - run: lando ssh --command 'ls -la /app/sites/default/'
       - run: lando ssh --command 'mkdir /var/www/private'
+      - run: lando ssh --command 'chmod 744 /app/sites/default/settings.php'
+      - run: lando ssh --command 'ls -la /app/sites/default/'
       - run: lando ssh --command 'echo \$settings[\"file_private_path\"] = \"/var/www/private\"\; >> /app/sites/default/settings.php'
       - run: lando drush cr
 
