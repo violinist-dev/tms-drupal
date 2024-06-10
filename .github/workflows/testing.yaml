@@ -49,15 +49,12 @@ jobs:
       - run: lando ssh --command 'echo \$settings[\"file_private_path\"] = \"/var/www/private\"\; >> /app/sites/default/settings.php'
       - run: lando drush cr
 
-      # Run NIWA API to fetch weather data
-      - name: Fetch weather data from NIWA API
-        run: lando ssh --command "curl 'http://met-api.lndo.site/met-niwa/run'"
-
-      - name: Fetch tide data from SPC API
-        run: lando ssh --command "curl 'http://met-api.lndo.site/met-spc/run'"
-
       # Enable the test module
       - run: lando drush en met_api_test
+
+      # Copy test file to private directory
+      - run: lando ssh --command 'cp -R modules/custom/met_api/test/modules/met_api_test/assets/. /var/www/private/'
+      - run: lando ssh --command 'ls -la /var/www/private'
 
       # This will run tests. If any tests fail, it will fail here.
       - name: Run tests TMS API
