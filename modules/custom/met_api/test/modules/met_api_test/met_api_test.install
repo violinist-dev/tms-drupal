@@ -109,6 +109,7 @@ function met_api_test_install($is_sync) {
 
     //create evacuation data
     $safezone = \Drupal::service('entity_type.manager')->getStorage('node')->create([
+      'title' => 'Evacuation point Fasi',
       'type' => 'evacuation',
       'field_geo_location' => [
         'lat' => '-21.20443',
