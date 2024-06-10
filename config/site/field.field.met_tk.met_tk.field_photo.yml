@@ -13,7 +13,7 @@ entity_type: met_tk
 bundle: met_tk
 label: Photo
 description: ''
-required: true
+required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
