@@ -8,7 +8,7 @@ env:
   LANDO_VERSION: v3.21.0
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -55,9 +55,7 @@ jobs:
 
       - name: Fetch tide data from SPC API
         run: lando ssh --command "curl 'http://met-api.lndo.site/met-spc/run'"
-jobs: 
-  test:
-    steps:
+
       # Enable the test module
       - run: lando drush en met_api_test
 
