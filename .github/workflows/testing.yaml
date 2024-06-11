@@ -59,6 +59,12 @@ jobs:
       - name: Test newman
         run: lando newman run modules/custom/met_api/test/modules/met_api_test/assets/api_test.postman_collection.json -e modules/custom/met_api/test/modules/met_api_test/assets/local.postman_environment.json
 
+      - name: Debug 1
+        run: lando drush watchdog:show --count=46
+
+      - name: Debug 2
+        run: lando drush watchdog:show --type=php
+
       - name: Run tests TMS API
         run: lando composer test-tms-api
 
