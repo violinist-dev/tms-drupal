@@ -19,9 +19,7 @@ jobs:
           sudo chmod +x /usr/local/bin/lando
 
       - name: Install node
-        run: |
-          sudo curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          sudo nvm install 20
+        run: sudo curl -sL https://deb.nodesource.com/setup_20.x | bash -
 
       - name: Test node
         run: node -v & npm v
