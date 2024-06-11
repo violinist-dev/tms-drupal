@@ -18,15 +18,6 @@ jobs:
           sudo curl -fsSL -o /usr/local/bin/lando "https://files.lando.dev/cli/lando-linux-x64-${LANDO_VERSION}"
           sudo chmod +x /usr/local/bin/lando
 
-      - name: Install node
-        run: sudo curl -sL https://deb.nodesource.com/setup_20.x | bash -
-
-      - name: Test node
-        run: node -v & npm v
-
-      - name: Install newman
-        run: npm install -g newman
-
       # This is optional.
       - name: Cache Composer packages
         id: composer-cache
@@ -66,7 +57,7 @@ jobs:
 
       # This will run tests. If any tests fail, it will fail here.
       - name: Test newman
-        run: lando ssh --command 'newman'
+        run: lando newman
 
       - name: Run tests TMS API
         run: lando composer test-tms-api

@@ -4,8 +4,12 @@ config:
   webroot: .
   php: 8.2
 services:
+  node:
+    type: node:20
+    build_as_root:
+      - npm install & npm install -g newman
   db:
-    type: 'mysql:5.7'
+    type: "mysql:5.7"
     portforward: false
     creds:
       user: mysql
@@ -14,3 +18,10 @@ services:
   phpmyadmin:
     type: phpmyadmin
     backends: [db]
+tooling:
+  npm:
+    service: node
+  node:
+    service: node
+  newman:
+    service: node
