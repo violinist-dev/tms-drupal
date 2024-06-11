@@ -93,54 +93,6 @@
 				}
 			},
 			"response": []
-		},
-		{
-			"name": "Get TK Indicator Copy",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function(){",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Response body contains indicator field\", function(){",
-							"    pm.response.to.have.jsonBody('indicator');",
-							"})"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{host}}/api/v1/tk/ind?_format=json&sdf",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"tk",
-						"ind"
-					],
-					"query": [
-						{
-							"key": "_format",
-							"value": "json"
-						},
-						{
-							"key": "sdf",
-							"value": null
-						}
-					]
-				}
-			},
-			"response": []
 		}
 	]
 }
