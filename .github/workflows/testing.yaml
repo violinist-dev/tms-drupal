@@ -59,6 +59,9 @@ jobs:
       - run: lando ssh --command 'cp -R modules/custom/met_api/test/modules/met_api_test/assets/. /var/www/private/'
 
       # This will run tests. If any tests fail, it will fail here.
+      - name: Test newman
+        run: lando ssh --command 'newman'
+
       - name: Run tests TMS API
         run: lando composer test-tms-api
 
