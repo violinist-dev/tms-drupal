@@ -7,6 +7,7 @@ dependencies:
     - hal
     - met_api
     - serialization
+    - user
 id: met_api_event_resource
 plugin_id: met_api_event_resource
 granularity: resource
@@ -18,3 +19,4 @@ configuration:
     - json
   authentication:
     - basic_auth
+    - cookie
