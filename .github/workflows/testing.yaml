@@ -57,7 +57,7 @@ jobs:
 
       # This will run tests. If any tests fail, it will fail here.
       - name: Run Newman test
-        run: lando newman run modules/custom/met_api/test/modules/met_api_test/assets/api_test_3.postman_collection.json -e modules/custom/met_api/test/modules/met_api_test/assets/local.postman_environment.json
+        run: lando newman run modules/custom/met_api/test/modules/met_api_test/assets/api_test.postman_collection.json -e modules/custom/met_api/test/modules/met_api_test/assets/local.postman_environment.json
 
       - name: Run unit test
         run: lando composer test-tms-api
