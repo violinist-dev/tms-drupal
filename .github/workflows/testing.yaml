@@ -50,7 +50,7 @@ jobs:
       - run: lando drush cr
 
       # Enable the test module
-      - run: lando drush en met_api_test
+      - run: lando drush en met_api_test -y
 
       # Copy test file to private directory
       - run: lando ssh --command 'cp -R modules/custom/met_api/test/modules/met_api_test/assets/. /var/www/private/'

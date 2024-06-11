@@ -107,6 +107,11 @@ function met_api_test_install($is_sync) {
     $event->save();
 
 
+    //add  tk indicators
+    $image_target_path = 'private://newphoto.jpg';
+    $image_data = file_get_contents('private://photo.jpg');
+    $image_object = \Drupal::service('file.repository')->writeData($image_data, $image_target_path);
+    
     //create evacuation data
     $safezone = \Drupal::service('entity_type.manager')->getStorage('node')->create([
       'title' => 'Evacuation point Fasi',
@@ -120,9 +125,60 @@ function met_api_test_install($is_sync) {
         'value' => 'Evacuation body content here',
         'format' => 'full_html',
         ],
-      'field_safe_zone_image' => 'https://unsplash.com/photos/aerial-photography-of-red-personal-watercraft-circling-on-water-at-daytime-A0xBsjb1ddo',
+      'field_safe_zone_image' => [
+        'target_id' => $image_object->id(),
+        'alt' => 'test',
+      ],
     ]);
     $safezone->isNew();
     $safezone->save();
+
+
+
+    //add  tk indicators
+    $terms[] = [
+      'name'     => "Fruit",
+      'vid'      => 'tk_indicators',
+      'field_photo' =>  [
+        'target_id' => $image_object->id(),
+        'alt' => 'test',
+      ],
+      'description' => [
+        'summary' => '',
+        'value' => 'Test description body data here',
+        'format' => 'full_html',
+      ],
+    ];
+    $terms[] = [
+      'name'     => "Banana",
+      'vid'      => 'tk_indicators',
+      'field_photo' =>  [
+        'target_id' => $image_object->id(),
+        'alt' => 'test',
+      ],
+      'description' => [
+        'summary' => '',
+        'value' => 'Test description body data here',
+        'format' => 'full_html',
+      ],
+    ];
+    $terms[] = [
+      'name'     => "Mango",
+      'vid'      => 'tk_indicators',
+      'field_photo' => [
+        'target_id' => $image_object->id(),
+        'alt' => 'test',
+      ],
+      'description' => [
+        'summary' => '',
+        'value' => 'Test description body data here',
+        'format' => 'full_html',
+      ],
+    ];
+
+    foreach($terms as $term) {
+      $term = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->create($term);
+      $term->save();
+    }
 
 }

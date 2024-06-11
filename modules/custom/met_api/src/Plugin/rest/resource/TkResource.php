@@ -207,10 +207,14 @@ class TkResource extends ResourceBase {
       $termid = $item->get('field_indicator')->target_id;
       $term = Term::load($termid);
 
-      //get indicator photo
-      $fid = $term->get('field_photo')->target_id;
-      $file = File::load($fid);
-      $photo_url = $file->createFileUrl(false);
+      //Get indicator photo
+      $photo_url = "";
+      if ($term) {
+        $fid = $term->get('field_photo')->target_id;
+        $file = File::load($fid);
+        $photo_url = $file->createFileUrl(false);
+      }
+  
 
       $desc = $term->get('description')->getValue()[0]['value'];
 
