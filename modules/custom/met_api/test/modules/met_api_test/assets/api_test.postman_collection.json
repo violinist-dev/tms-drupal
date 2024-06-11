@@ -118,7 +118,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{host}}/api/v1/tk/tk?_format=json&sdf",
+					"raw": "{{host}}/api/v1/tk/ind?_format=json&sdf",
 					"host": [
 						"{{host}}"
 					],
@@ -126,7 +126,7 @@
 						"api",
 						"v1",
 						"tk",
-						"tk"
+						"ind"
 					],
 					"query": [
 						{
