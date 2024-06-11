@@ -63,12 +63,9 @@
         },
         "sort-packages": true
     },
-    
     "scripts": {
         "test": "phpunit",
-        "test-tms-api": "vendor/bin/phpunit -c core modules/custom/met_api",
-        "test-niwa-api": "vendor/bin/phpunit -c core modules/custom/met_niwa",
-        "test-spc-api": "vendor/bin/phpunit -c core modules/custom/met_spc"
+        "test-tms-api": "vendor/bin/phpunit -c core modules/custom/met_api"
     },
     "extra": {
         "drupal-scaffold": {

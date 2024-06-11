@@ -56,20 +56,8 @@ jobs:
       - run: lando ssh --command 'cp -R modules/custom/met_api/test/modules/met_api_test/assets/. /var/www/private/'
 
       # This will run tests. If any tests fail, it will fail here.
-      - name: Test newman
-        run: lando newman run modules/custom/met_api/test/modules/met_api_test/assets/api_test.postman_collection.json -e modules/custom/met_api/test/modules/met_api_test/assets/local.postman_environment.json
+      - name: Run Newman test
+        run: lando newman run modules/custom/met_api/test/modules/met_api_test/assets/api_test_3.postman_collection.json -e modules/custom/met_api/test/modules/met_api_test/assets/local.postman_environment.json
 
-      - name: Debug 1
-        run: lando drush watchdog:show --count=46
-
-      - name: Debug 2
-        run: lando drush watchdog:show --type=php
-
-      - name: Run tests TMS API
+      - name: Run unit test
         run: lando composer test-tms-api
-
-      - name: Run tests NIWA API
-        run: lando composer test-niwa-api
-
-      - name: Run tests SPC API
-        run: lando composer test-spc-api
