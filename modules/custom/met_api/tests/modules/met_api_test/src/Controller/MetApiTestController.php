@@ -34,22 +34,7 @@ final class MetApiTestController extends ControllerBase {
    */
   public function __invoke(): array {
 
-        //create evacuation data
-        $safezone = \Drupal::service('entity_type.manager')->getStorage('node')->create([
-          'type' => 'evacuation',
-          'title' => 'Evacuation title',
-          'field_geo_location' => [
-            'lat' => '-21.20443',
-            'lng' => '-175.2018',
-          ],
-          'body' => [
-            'summary' => '',
-            'value' => 'Evacuation body content here',
-            'format' => 'full_html',
-            ],
-        ]);
-        $safezone->isNew();
-        $safezone->save();
+    
 
     $build['content'] = [
       '#type' => 'item',
