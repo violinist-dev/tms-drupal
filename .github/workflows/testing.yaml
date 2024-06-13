@@ -32,7 +32,7 @@ jobs:
       - run: lando start
       - run: lando composer install
       - run: lando composer require --dev drupal/core-dev
-      - run: lando ssh --command "cp modules/custom/met_api/tests/modules/met_api_test/assets/phpunit.xml core/phpunit.xml"
+      - run: lando ssh --command "cp modules/custom/met_api/modules/met_api_test/assets/phpunit.xml core/phpunit.xml"
       - run: lando ssh --command "cp core/.env.example .env"
 
       # Install Drupal
@@ -53,11 +53,11 @@ jobs:
       - run: lando drush en met_api_test -y
 
       # Copy test file to private directory
-      - run: lando ssh --command 'cp -R modules/custom/met_api/tests/modules/met_api_test/assets/. /var/www/private/'
+      - run: lando ssh --command 'cp -R modules/custom/met_api/modules/met_api_test/assets/. /var/www/private/'
 
       # This will run tests. If any tests fail, it will fail here.
       - name: Run Newman test
-        run: lando newman run modules/custom/met_api/tests/modules/met_api_test/assets/api_test.postman_collection.json -e modules/custom/met_api/tests/modules/met_api_test/assets/local.postman_environment.json
+        run: lando newman run modules/custom/met_api/modules/met_api_test/assets/api_test.postman_collection.json -e modules/custom/met_api/modules/met_api_test/assets/local.postman_environment.json
 
       - name: Run unit test
         run: lando composer test-tms-api
