@@ -65,7 +65,7 @@
     },
     "scripts": {
         "test": "phpunit",
-        "test-tms-api": "vendor/bin/phpunit -c core modules/custom/met_api"
+        "test-niwa-module": "vendor/bin/phpunit -c core modules/custom/met_niwa"
     },
     "extra": {
         "drupal-scaffold": {
