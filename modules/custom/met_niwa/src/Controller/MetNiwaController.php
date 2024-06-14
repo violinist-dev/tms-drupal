@@ -2,8 +2,11 @@
 
 namespace Drupal\met_niwa\Controller;
 
+
+use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Controller\ControllerBase;
 use \Datetime;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Returns responses for Met data converter routes.
@@ -15,13 +18,6 @@ final class MetNiwaController extends ControllerBase {
   private $data_enpoint = 'GetChannelList/';
 
   private static $token = '';
-
-  public function __construct() {
-
-    $config = \Drupal::configFactory()->getEditable('met_niwa.settings');
-    $this->api_base_url = $config->get('url');
-    $this->token_enpoint = $config->get('endpoint');
-  }
 
 
   private function callApi($url, $header = ['Content-Type: application/json']) {
@@ -71,6 +67,10 @@ final class MetNiwaController extends ControllerBase {
    * Builds the response.
    */
   public function __invoke(): array {
+
+    $config = \Drupal::configFactory()->getEditable('met_niwa.settings');
+    $this->api_base_url = $config->get('url');
+    $this->token_enpoint = $config->get('endpoint');
 
     // Map the required item to its IDs
     $weather_data = [

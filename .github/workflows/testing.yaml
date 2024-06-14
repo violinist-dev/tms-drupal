@@ -60,4 +60,4 @@ jobs:
         run: lando newman run modules/custom/met_api/modules/met_api_test/assets/api_test.postman_collection.json -e modules/custom/met_api/modules/met_api_test/assets/local.postman_environment.json
 
       - name: Run unit test
-        run: lando composer test-tms-api
+        run: lando composer test-niwa-module
