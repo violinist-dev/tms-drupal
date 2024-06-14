@@ -59,3 +59,6 @@ modules/contrib/
 .vscode/settings.json
 .idea/
 .env
+
+# ignore sensitive configuration data
+config/site/met_spc.settings.yml

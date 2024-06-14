@@ -31,6 +31,7 @@
         "drupal/jquery_ui": "^1.6",
         "drupal/jquery_ui_autocomplete": "^2.0",
         "drupal/mailsystem": "^4.4",
+        "drupal/node_view_permissions": "^1.6",
         "drupal/paragraphs": "^1.15",
         "drupal/real_aes": "^2.5",
         "drupal/recaptcha": "^3.2",
