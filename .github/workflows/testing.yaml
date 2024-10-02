@@ -4,7 +4,7 @@ on:
   - pull_request
 
 env:
-  LANDO_VERSION: v3.21.0
+  LANDO_VERSION: v3.18.0
 
 jobs:
   build-test:
@@ -28,6 +28,7 @@ jobs:
             ${{ runner.os }}-php-
 
       # Boot Lando and set up Drupal
+      - run: lando setup
       - run: lando start
       - run: lando composer install
       - run: lando composer require --dev drupal/core-dev
